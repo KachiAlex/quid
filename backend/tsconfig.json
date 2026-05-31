@@ -16,6 +16,7 @@
     "declaration": true,
     "declarationMap": true,
     "baseUrl": ".",
+    "types": ["node"],
     "paths": {
       "@/*": ["src/*"]
     }

@@ -1,5 +1,5 @@
 import bcrypt from 'bcryptjs'
-import jwt, { type Secret } from 'jsonwebtoken'
+import { sign, verify, type Secret, type SignOptions } from 'jsonwebtoken'
 import crypto from 'crypto'
 import { pool } from '../db'
 import { logger } from '../config/logger'
@@ -22,12 +22,16 @@ export async function verifyPassword(password: string, hash: string): Promise<bo
   return bcrypt.compare(password, hash)
 }
 
+function jwtSign(payload: object, secret: Secret, options: SignOptions) {
+  return sign(payload, secret, options)
+}
+
 export function generateTokenPair(userId: string): TokenPair {
-  const accessToken = jwt.sign({ userId, type: 'access' }, JWT_SECRET, {
-    expiresIn: ACCESS_EXPIRY,
+  const accessToken = jwtSign({ userId, type: 'access' }, JWT_SECRET, {
+    expiresIn: ACCESS_EXPIRY as SignOptions['expiresIn'],
   })
-  const refreshToken = jwt.sign({ userId, type: 'refresh' }, JWT_REFRESH_SECRET, {
-    expiresIn: `${REFRESH_EXPIRY_DAYS}d`,
+  const refreshToken = jwtSign({ userId, type: 'refresh' }, JWT_REFRESH_SECRET, {
+    expiresIn: `${REFRESH_EXPIRY_DAYS}d` as SignOptions['expiresIn'],
   })
   return { accessToken, refreshToken }
 }
@@ -44,7 +48,7 @@ export async function storeRefreshToken(userId: string, token: string): Promise<
 
 export async function verifyRefreshToken(token: string): Promise<string | null> {
   try {
-    const decoded = jwt.verify(token, JWT_REFRESH_SECRET) as { userId: string; type: string }
+    const decoded = verify(token, JWT_REFRESH_SECRET) as { userId: string; type: string }
     if (decoded.type !== 'refresh') return null
 
     const hash = crypto.createHash('sha256').update(token).digest('hex')

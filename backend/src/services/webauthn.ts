@@ -14,7 +14,7 @@ export async function generateRegOpts(userId: string, email: string) {
   const options = await generateRegistrationOptions({
     rpName: RP_NAME,
     rpID: RP_ID,
-    userID: userId,
+    userID: Buffer.from(userId),
     userName: email,
     userDisplayName: email,
     attestationType: 'none',
@@ -70,7 +70,7 @@ export async function generateAuthOpts(userId: string) {
   const allowCredentials = creds.rows.map((r: any) => ({
     id: r.credential_external_id,
     type: 'public-key' as const,
-  }))
+  })) as any
 
   const options = await generateAuthenticationOptions({
     rpID: RP_ID,

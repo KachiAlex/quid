@@ -1,112 +1,110 @@
 import { Link } from 'react-router-dom'
-import { Shield, Sparkles, TrendingUp, ArrowUpRight, Zap } from 'lucide-react'
+import { ArrowUpRight, Sparkles, Bolt } from 'lucide-react'
 
-const featureCards = [
+const metrics = [
+  { label: 'People saving with Quid', value: '250,000+' },
+  { label: 'Total saved', value: '£18.4M+' },
+  { label: 'Switches this month', value: '14,381' },
+  { label: 'Average saving / user', value: '£287' },
+]
+
+const processSteps = [
   {
-    title: 'Hidden Money Finder',
-    description: 'We scan your bank feeds for duplicate payments, renewal spikes, and abandoned subscriptions.',
-    icon: Zap,
+    title: 'Connect securely',
+    detail: 'Link all your UK accounts in under 60 seconds.',
   },
   {
-    title: 'Quid Shield Alerts',
-    description: 'Get notified 60/14 days before big renewals so you can cancel or renegotiate.',
-    icon: Shield,
+    title: 'Discover overpayments',
+    detail: 'AI scans your feeds for spikes, duplicates, and renewal shocks.',
   },
   {
-    title: 'Instant Comparison',
-    description: 'See how much you could save with curated alternatives across all product types.',
-    icon: TrendingUp,
+    title: 'Switch instantly',
+    detail: 'See the best deals and automate the switch with one tap.',
   },
+  {
+    title: 'Stay protected',
+    detail: 'Quid Shield monitors price changes 24/7 so you never overpay again.',
+  },
+]
+
+const opportunityCards = [
+  { title: 'Car insurance', value: '£712/year', tag: 'Very High', color: 'border-rose-400/40 text-rose-300' },
+  { title: 'Broadband', value: '£216/year', tag: 'High', color: 'border-emerald-400/40 text-emerald-300' },
+  { title: 'Energy', value: '£438/year', tag: 'High', color: 'border-amber-400/40 text-amber-300' },
+  { title: 'Subscriptions', value: '£156/year', tag: 'Medium', color: 'border-sky-400/40 text-sky-300' },
 ]
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-[#030712] text-white">
-      <GradientHeader />
-      <main className="relative z-10 max-w-6xl mx-auto px-4 py-24 space-y-20">
-        <Hero />
-        <FeatureGrid />
-        <SavingsTimeline />
+    <div className="min-h-screen bg-[#070b17] text-white">
+      <Hero />
+      <main className="relative z-10 mx-auto flex max-w-6xl flex-col gap-16 px-4 pb-20 pt-10">
+        <TrustBadgeRow />
+        <ProcessGrid />
+        <OpportunityGrid />
+        <MetricsPanel />
         <CTA />
       </main>
     </div>
   )
 }
 
-function GradientHeader() {
-  return (
-    <div className="relative h-80 bg-gradient-to-br from-[#031b38] via-[#061325] to-[#0b0f1b] overflow-hidden">
-      <div className="absolute inset-0 opacity-40 bg-[radial-gradient(circle_at_top,_rgba(59,130,246,0.5),_transparent_45%)]" />
-      <div className="absolute inset-0 opacity-30 bg-[radial-gradient(circle_at_20%_20%,_rgba(236,72,153,0.4),_transparent_40%)]" />
-      <div className="relative z-10 flex flex-col gap-3 px-6 pt-10">
-        <Link to="/" className="inline-flex items-center gap-2 text-lg font-semibold tracking-tight">
-          <Sparkles className="w-6 h-6 text-emerald-400" />
-          <span>Quid</span>
-        </Link>
-        <div className="flex flex-wrap gap-4">
-          <span className="px-3 py-1 rounded-full bg-white/10 text-sm text-white/80">Finance AI</span>
-          <span className="px-3 py-1 rounded-full bg-white/10 text-sm text-white/80">Open Banking</span>
-          <span className="px-3 py-1 rounded-full bg-white/10 text-sm text-white/80">Autopilot Switching</span>
-        </div>
-      </div>
-    </div>
-  )
-}
-
 function Hero() {
   return (
-    <section className="grid gap-12 lg:grid-cols-[1.1fr,0.9fr] items-center">
-      <div className="space-y-8">
-        <p className="text-sm uppercase tracking-[0.4em] text-white/50">Intelligent Money Return</p>
-        <h1 className="text-5xl lg:text-6xl font-semibold leading-tight">
-          Find Hidden Money. Keep More Cash.
-        </h1>
-        <p className="text-xl text-white/70 max-w-2xl">
-          Quid analyzes every subscription, insurance premium, tariff, and renewal in cadence with your bank connections. We surface
-          the highest-confidence savings, rank them by urgency, and help you take action in just a few taps.
-        </p>
-        <div className="flex flex-wrap gap-4">
-          <Link
-            to="/connect-bank"
-            className="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-[#0ea5e9] to-[#6366f1] px-6 py-3 font-semibold text-white shadow-[0_20px_60px_rgba(14,165,233,0.3)]"
-          >
-            Securely Connect My Bank
-            <ArrowUpRight className="w-4 h-4" />
-          </Link>
-          <Link
-            to="/login"
-            className="inline-flex items-center gap-2 rounded-2xl border border-white/30 px-6 py-3 font-semibold text-white/80 hover:text-white"
-          >
-            Already a member? Sign in
-          </Link>
-        </div>
-        <div className="flex flex-wrap gap-8 text-sm text-white/60">
-          <Stat label="Money Recovered" value="$2.3M+" />
-          <Stat label="Active Users" value="50K+" />
-          <Stat label="Rated by Users" value="4.9★" />
-        </div>
-      </div>
-      <div className="rounded-[36px] border border-white/10 bg-white/5 p-6 backdrop-blur-xl shadow-[0_40px_80px_rgba(15,118,110,0.2)]">
-        <div className="flex items-center justify-between text-sm text-white/70 mb-6">
-          <span>Financial health</span>
-          <span className="text-[#34d399]">+12 pts this month</span>
-        </div>
-        <div className="overflow-hidden rounded-2xl bg-slate-900/70 p-6 space-y-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-xs uppercase text-white/60">Total savings identified</p>
-              <p className="text-3xl font-semibold">£1,280</p>
+    <section className="relative overflow-hidden rounded-[32px] border border-white/10 bg-gradient-to-br from-[#120e2c] via-[#1a2137] to-[#140d25] p-10 shadow-[0_40px_80px_rgba(3,7,18,0.8)]">
+      <div className="absolute inset-0 opacity-40 blur-3xl" style={{ background: 'radial-gradient(circle at 20% 20%, rgba(59,130,246,0.4), transparent 40%), radial-gradient(circle at 80% 0%, rgba(236,72,153,0.55), transparent 30%)' }} />
+      <div className="relative grid gap-12 lg:grid-cols-2">
+        <div className="space-y-6">
+          <div className="inline-flex items-center gap-2 rounded-full border border-white/20 px-4 py-1 text-xs uppercase tracking-[0.3em] text-white/70">
+            <Sparkles className="h-4 w-4 text-emerald-300" />
+            AI Financial Guardian
+          </div>
+          <h1 className="text-5xl font-bold leading-tight text-white">
+            Stop overpaying. Let AI protect your money.
+          </h1>
+          <p className="text-lg text-white/70">
+            Quid connects to your bank securely, finds hidden overpayments, and shows the best deals you can switch to in minutes.
+          </p>
+          <div className="flex flex-wrap gap-4">
+            <Link
+              to="/connect-bank"
+              className="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-[#7c3aed] to-[#0ea5e9] px-6 py-3 text-base font-semibold shadow-[0_20px_60px_rgba(14,165,233,0.35)]"
+            >
+              Get my savings report
+              <ArrowUpRight className="h-4 w-4" />
+            </Link>
+            <Link
+              to="/how-it-works"
+              className="inline-flex items-center gap-2 rounded-2xl border border-white/30 px-6 py-3 text-base font-semibold text-white/80 transition hover:text-white"
+            >
+              See how it works
+            </Link>
+          </div>
+          <div className="flex flex-wrap gap-6 text-sm text-white/60">
+            <div className="inline-flex items-center gap-2">
+              <span className="rounded-full bg-white/10 px-3 py-1">Bank-level security</span>
+              <span className="rounded-full bg-white/10 px-3 py-1">FCA regulated</span>
             </div>
-            <div className="rounded-full bg-white/10 px-3 py-1 text-xs">Live</div>
           </div>
-          <div className="h-2 w-full rounded-full bg-white/5">
-            <div className="h-full w-3/5 rounded-full bg-gradient-to-r from-[#38bdf8] to-[#a78bfa]" />
-          </div>
-          <div className="grid grid-cols-2 gap-4 text-sm">
-            <MiniStat label="Bills scanned" value="12" />
-            <MiniStat label="Alerts pending" value="3" warning />
-            <MiniStat label="Renewals due" value="4" />
-            <MiniStat label="Switch requests" value="2" />
+        </div>
+        <div className="rounded-[30px] border border-white/10 bg-white/5 p-6 shadow-2xl">
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-white/60">Potential annual savings</p>
+                <p className="text-4xl font-bold">£2,847</p>
+              </div>
+              <div className="rounded-full border border-white/20 px-3 py-1 text-xs text-white/70">+23% vs last scan</div>
+            </div>
+            <div className="grid gap-4 md:grid-cols-2">
+              {opportunityCards.map((item) => (
+                <div key={item.title} className={`rounded-2xl border ${item.color} bg-white/5 p-4`}>  
+                  <p className="text-sm text-white/50">{item.title}</p>
+                  <p className="text-xl font-semibold text-white">{item.value}</p>
+                  <p className="text-xs uppercase text-white/40">{item.tag}</p>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>
@@ -114,42 +112,35 @@ function Hero() {
   )
 }
 
-function Stat({ label, value }: { label: string; value: string }) {
+function TrustBadgeRow() {
+  const badges = ['Bank-level security', 'FCA regulated', 'No hidden fees', 'Trusted by 250K+ users']
   return (
-    <div>
-      <p className="text-3xl font-bold">{value}</p>
-      <p>{label}</p>
+    <div className="flex flex-wrap items-center gap-4 rounded-[28px] border border-white/10 bg-white/5 px-6 py-4 text-sm text-white/60">
+      {badges.map((badge) => (
+        <span key={badge} className="rounded-full border border-white/10 px-4 py-1">{badge}</span>
+      ))}
     </div>
   )
 }
 
-function MiniStat({ label, value, warning }: { label: string; value: string; warning?: boolean }) {
+function ProcessGrid() {
   return (
-    <div className={`rounded-2xl border px-3 py-2 text-xs ${warning ? 'border-rose-400/70 text-rose-300' : 'border-white/20'}`}>
-      <p className="text-white/80">{label}</p>
-      <p className="text-lg font-semibold">{value}</p>
-    </div>
-  )
-}
-
-function FeatureGrid() {
-  return (
-    <section id="features" className="space-y-6">
+    <section className="grid gap-6 rounded-[32px] border border-white/10 bg-white/5 p-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-3xl font-semibold">What Quid unlocks for you</h2>
-        <div className="text-sm text-white/60">Trusted by savings-hungry households</div>
+        <div>
+          <h2 className="text-3xl font-semibold">How Quid works</h2>
+          <p className="text-sm text-white/60">Four simple steps to stop overpaying.</p>
+        </div>
+        <button className="text-sm text-emerald-300 underline-offset-2 hover:underline">See details</button>
       </div>
-      <div className="grid gap-6 md:grid-cols-3">
-        {featureCards.map((feature) => (
-          <article
-            key={feature.title}
-            className="group rounded-3xl border border-white/10 bg-gradient-to-br from-white/5 to-white/0 p-6 transition-all hover:border-white/40"
-          >
-            <div className="inline-flex rounded-2xl bg-white/10 p-3 mb-6">
-              <feature.icon className="w-6 h-6 text-emerald-300" />
+      <div className="grid gap-4 md:grid-cols-4">
+        {processSteps.map((step) => (
+          <article key={step.title} className="space-y-3 rounded-2xl border border-white/10 bg-gradient-to-br from-white/5 to-white/0 p-4">
+            <div className="inline-flex items-center justify-center rounded-2xl bg-white/10 p-3">
+              <Bolt className="h-5 w-5 text-emerald-300" />
             </div>
-            <h3 className="text-xl font-semibold mb-2">{feature.title}</h3>
-            <p className="text-sm text-white/60">{feature.description}</p>
+            <h3 className="text-lg font-semibold">{step.title}</h3>
+            <p className="text-sm text-white/60">{step.detail}</p>
           </article>
         ))}
       </div>
@@ -157,27 +148,22 @@ function FeatureGrid() {
   )
 }
 
-function SavingsTimeline() {
-  const timeline = [
-    { title: 'Connect your bank', detail: 'TrueLayer-backed connection with bank-grade security.' },
-    { title: 'Scan & classify', detail: 'AI rules tag each payment and tag renewals earning you alerts.' },
-    { title: 'Switch with confidence', detail: 'Tailored comparisons show what to cancel or upgrade.' },
-  ]
+function OpportunityGrid() {
   return (
-    <section className="space-y-6">
+    <section className="grid gap-6 rounded-[32px] border border-white/10 bg-gradient-to-br from-[#0b1223] to-[#090816] p-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-3xl font-semibold">From connect to compare</h2>
-        <p className="text-sm text-white/60">All in less than 3 minutes</p>
+        <div>
+          <h2 className="text-3xl font-semibold">Top opportunities</h2>
+          <p className="text-sm text-white/60">Actionable alerts curated by Quid Shield.</p>
+        </div>
+        <button className="text-sm text-white/70 underline-offset-2 hover:text-white">See all (12)</button>
       </div>
-      <div className="grid gap-5 md:grid-cols-3">
-        {timeline.map((step, index) => (
-          <div
-            key={step.title}
-            className="rounded-3xl border border-white/10 bg-white/5 p-6 space-y-3 hover:border-emerald-400/70"
-          >
-            <p className="text-sm text-white/60">Step {index + 1}</p>
-            <h3 className="text-xl font-semibold">{step.title}</h3>
-            <p className="text-sm text-white/60">{step.detail}</p>
+      <div className="grid gap-4 md:grid-cols-4">
+        {opportunityCards.map((card) => (
+          <div key={card.title} className={`rounded-3xl border bg-white/5 p-5 ${card.color}`}>
+            <div className="text-sm uppercase tracking-widest text-white/40">{card.title}</div>
+            <div className="mt-3 text-2xl font-semibold text-white">{card.value}</div>
+            <div className="text-xs text-white/60">{card.tag} alert</div>
           </div>
         ))}
       </div>
@@ -185,29 +171,51 @@ function SavingsTimeline() {
   )
 }
 
+function MetricsPanel() {
+  return (
+    <section className="grid gap-6 rounded-[32px] border border-white/10 bg-white/5 p-6 md:grid-cols-2">
+      <div className="space-y-4">
+        <h2 className="text-3xl font-semibold">Real people. Real savings.</h2>
+        <p className="text-sm text-white/60">Quid keeps an eye on your bills, savings and switches so you stay ahead of renewals.</p>
+        <div className="grid gap-4 sm:grid-cols-2">
+          {metrics.map((metric) => (
+            <div key={metric.label} className="rounded-2xl border border-white/10 bg-black/30 px-4 py-5">
+              <p className="text-lg font-bold text-white">{metric.value}</p>
+              <p className="text-xs uppercase tracking-[0.3em] text-white/40">{metric.label}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+      <div className="space-y-6 rounded-3xl border border-white/10 bg-gradient-to-br from-[#090a16] to-[#0d0f1d] p-6 shadow-[0_30px_60px_rgba(15,23,42,0.8)]">
+        <h3 className="text-xl font-semibold">Loved by thousands</h3>
+        <div className="space-y-4 text-sm text-white/60">
+          <p>“Quid found me £472 in potential savings within minutes.” — Sarah M.</p>
+          <p>“Broadband price notice in 2 taps. The AI coach is a game changer.” — James P.</p>
+          <p>“I didn’t know I was overpaying on 3 subscriptions—Quid cancelled them instantly.” — Olivia R.</p>
+        </div>
+      </div>
+    </section>
+  )
+}
+
 function CTA() {
   return (
-    <section className="rounded-[36px] border border-white/30 bg-gradient-to-r from-[#0ea5e9]/30 to-[#a78bfa]/30 p-10 text-center shadow-[0_30px_80px_rgba(15,118,110,0.25)]">
-      <div className="space-y-4">
-        <p className="text-sm uppercase tracking-[0.5em] text-white/60">Ready to keep more cash?</p>
-        <h2 className="text-4xl font-semibold">Join 50K+ users already safeguarding their renewals.</h2>
-        <p className="text-lg text-white/70 max-w-3xl mx-auto">
-          Connect one account and Quid keeps watching renewals, analyzing savings, and nudging you to switch before you get billed again.
-        </p>
-        <div className="flex flex-wrap justify-center gap-4">
-          <Link
-            to="/connect-bank"
-            className="rounded-2xl bg-white px-7 py-3 text-base font-semibold text-slate-900 shadow-lg shadow-slate-900/40 transition-all hover:-translate-y-1"
-          >
-            Connect my bank
-          </Link>
-          <Link
-            to="/login"
-            className="rounded-2xl border border-white/60 px-6 py-3 text-base font-semibold text-white/80 hover:text-white"
-          >
-            Explore dashboard
-          </Link>
-        </div>
+    <section className="flex flex-col items-center gap-6 rounded-[36px] border border-white/20 bg-gradient-to-r from-[#3b82f6]/20 via-[#8b5cf6]/20 to-[#c084fc]/20 p-10 text-center">
+      <p className="text-sm uppercase tracking-[0.5em] text-white/70">Ready to stop overpaying?</p>
+      <h2 className="text-4xl font-semibold">Get a free savings report in 60 seconds.</h2>
+      <div className="flex flex-wrap justify-center gap-4">
+        <Link
+          to="/connect-bank"
+          className="rounded-2xl bg-white px-8 py-3 text-lg font-semibold text-slate-900 shadow-lg shadow-slate-900/40 transition hover:-translate-y-1"
+        >
+          Connect my bank
+        </Link>
+        <Link
+          to="/dashboard"
+          className="rounded-2xl border border-white/70 px-6 py-3 text-lg font-semibold text-white/80 hover:text-white"
+        >
+          View dashboard
+        </Link>
       </div>
     </section>
   )

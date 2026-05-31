@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "concurrently \"npm run dev -w backend\" \"npm run dev -w frontend\" \"cd ai-service && .venv\\Scripts\\uvicorn app.main:app --reload --port 8000\"",
+    "build": "npm run build -w backend && npm run build -w frontend",
     "lint": "npm run lint -w frontend && npm run lint -w backend",
     "test": "npm run test -w frontend && npm run test -w backend"
   },

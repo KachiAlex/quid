@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { Shield, Sparkles, TrendingUp, ArrowUpRight, Zap, Users, Star } from 'lucide-react'
+import { Shield, Sparkles, TrendingUp, ArrowUpRight, Zap } from 'lucide-react'
 
 const featureCards = [
   {

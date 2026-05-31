@@ -87,6 +87,7 @@ export async function getTransactions(accessToken: string, accountId: string, fr
   })
   return res.data.results as Array<{
     transaction_id: string
+    account_id: string
     timestamp: string
     description: string
     transaction_type: 'DEBIT' | 'CREDIT'

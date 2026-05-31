@@ -1,3 +1,4 @@
+import crypto from 'crypto'
 import { pool } from '../db'
 import { generateTokenPair, storeRefreshToken } from './auth'
 import { logger } from '../config/logger'
@@ -51,7 +52,7 @@ async function getGoogleTokens(code: string): Promise<GoogleTokenResponse> {
     const text = await res.text()
     throw new Error(`Google token exchange failed: ${text}`)
   }
-  return res.json()
+  return res.json() as Promise<GoogleTokenResponse>
 }
 
 async function getGoogleUserInfo(idToken: string): Promise<GoogleUserInfo> {
@@ -60,7 +61,7 @@ async function getGoogleUserInfo(idToken: string): Promise<GoogleUserInfo> {
     const text = await res.text()
     throw new Error(`Google userinfo failed: ${text}`)
   }
-  return res.json()
+  return res.json() as Promise<GoogleUserInfo>
 }
 
 export async function handleGoogleCallback(code: string): Promise<{

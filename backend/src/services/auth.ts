@@ -1,11 +1,11 @@
 import bcrypt from 'bcryptjs'
-import jwt from 'jsonwebtoken'
+import jwt, { type Secret } from 'jsonwebtoken'
 import crypto from 'crypto'
 import { pool } from '../db'
 import { logger } from '../config/logger'
 
-const JWT_SECRET = process.env.JWT_SECRET!
-const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET!
+const JWT_SECRET: Secret = process.env.JWT_SECRET!
+const JWT_REFRESH_SECRET: Secret = process.env.JWT_REFRESH_SECRET!
 const ACCESS_EXPIRY = process.env.JWT_ACCESS_EXPIRY || '24h'
 const REFRESH_EXPIRY_DAYS = 30
 

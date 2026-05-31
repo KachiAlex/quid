@@ -14,7 +14,7 @@ export async function generateRegOpts(userId: string, email: string) {
   const options = await generateRegistrationOptions({
     rpName: RP_NAME,
     rpID: RP_ID,
-    userID: Buffer.from(userId),
+    userID: userId,
     userName: email,
     userDisplayName: email,
     attestationType: 'none',
@@ -45,13 +45,13 @@ export async function verifyReg(userId: string, body: any) {
     expectedOrigin: ORIGIN,
     expectedRPID: RP_ID,
     requireUserVerification: false,
-  })
+  } as any)
 
   if (!verification.verified || !verification.registrationInfo) {
     throw new Error('Registration verification failed')
   }
 
-  const { credentialID, credentialPublicKey, counter } = verification.registrationInfo
+  const { credentialID, credentialPublicKey, counter } = verification.registrationInfo as any
   await pool.query(
     `INSERT INTO webauthn_credentials (user_id, credential_external_id, public_key, counter)
      VALUES ($1, $2, $3, $4)`,
@@ -68,7 +68,7 @@ export async function generateAuthOpts(userId: string) {
     [userId]
   )
   const allowCredentials = creds.rows.map((r: any) => ({
-    id: Buffer.from(r.credential_external_id, 'base64url'),
+    id: r.credential_external_id,
     type: 'public-key' as const,
   }))
 
@@ -112,7 +112,7 @@ export async function verifyAuth(userId: string, body: any) {
       transports: cred.transports || [],
     },
     requireUserVerification: false,
-  })
+  } as any)
 
   if (!verification.verified) {
     throw new Error('Authentication verification failed')

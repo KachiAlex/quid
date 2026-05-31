@@ -1,0 +1,17 @@
+{
+  "name": "quid-workspace",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently \"npm run dev -w backend\" \"npm run dev -w frontend\" \"cd ai-service && .venv\\Scripts\\uvicorn app.main:app --reload --port 8000\"",
+    "lint": "npm run lint -w frontend && npm run lint -w backend",
+    "test": "npm run test -w frontend && npm run test -w backend"
+  },
+  "workspaces": [
+    "frontend",
+    "backend"
+  ],
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

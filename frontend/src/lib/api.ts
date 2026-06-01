@@ -1,8 +1,9 @@
 import axios from 'axios'
 import { useAuthStore } from '../stores/authStore'
 
+const isProduction = import.meta.env.MODE === 'production'
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || '/api',
+  baseURL: (isProduction ? '/api' : import.meta.env.VITE_API_URL) || '/api',
   withCredentials: true,
 })
 
@@ -22,7 +23,7 @@ api.interceptors.response.use(
       originalRequest._retry = true
       try {
         const res = await axios.post(
-          `${import.meta.env.VITE_API_URL || '/api'}/auth/refresh`,
+          `${(isProduction ? '/api' : import.meta.env.VITE_API_URL) || '/api'}/auth/refresh`,
           {},
           { withCredentials: true }
         )

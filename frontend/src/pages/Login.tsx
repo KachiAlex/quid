@@ -7,7 +7,9 @@ export default function Login() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
   const [needsVerification, setNeedsVerification] = useState(false)
+  const [resendSent, setResendSent] = useState(false)
   const navigate = useNavigate()
   const setAuth = useAuthStore((s) => s.setAuth)
 
@@ -15,17 +17,23 @@ export default function Login() {
     e.preventDefault()
     setError('')
     setNeedsVerification(false)
+    setLoading(true)
     try {
       const res = await api.post('/auth/login', { email, password })
       if (res.data.requireMfa) {
         // TODO: redirect to MFA page
         return
       }
+      const profile = await api.get('/auth/me', {
+        headers: { Authorization: `Bearer ${res.data.accessToken}` },
+      })
       setAuth(
         {
-          id: res.data.user.userId,
-          email: res.data.user.email,
-          subscriptionTier: 'free',
+          id: profile.data.userId,
+          email: profile.data.email,
+          firstName: profile.data.firstName,
+          lastName: profile.data.lastName,
+          subscriptionTier: profile.data.subscriptionTier || 'free',
         },
         res.data.accessToken
       )
@@ -36,6 +44,17 @@ export default function Login() {
         setNeedsVerification(true)
       }
       setError(msg)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleResendVerification = async () => {
+    try {
+      await api.post('/auth/resend-verification', { email })
+      setResendSent(true)
+    } catch {
+      setError('Failed to resend verification email.')
     }
   }
 
@@ -72,15 +91,25 @@ export default function Login() {
           </div>
           {error && <p className="text-sm text-red-600">{error}</p>}
           {needsVerification && (
-            <p className="text-sm text-quid-600">
-              <Link to="/forgot-password" className="hover:underline">Resend verification email</Link>
-            </p>
+            <div className="text-sm bg-amber-50 border border-amber-200 rounded-lg p-3">
+              {resendSent ? (
+                <p className="text-emerald-700 font-medium">Verification email sent — check your inbox.</p>
+              ) : (
+                <p className="text-amber-800">
+                  Email not verified.{' '}
+                  <button type="button" onClick={handleResendVerification} className="underline font-medium">
+                    Resend verification email
+                  </button>
+                </p>
+              )}
+            </div>
           )}
           <button
             type="submit"
-            className="w-full px-4 py-2 bg-quid-600 text-white rounded-lg font-medium hover:bg-quid-700 transition-colors"
+            disabled={loading}
+            className="w-full px-4 py-2 bg-quid-600 text-white rounded-lg font-medium hover:bg-quid-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Sign In
+            {loading ? 'Signing in…' : 'Sign In'}
           </button>
           <div className="relative my-2">
             <div className="absolute inset-0 flex items-center">
@@ -91,7 +120,7 @@ export default function Login() {
             </div>
           </div>
           <a
-            href={`${import.meta.env.VITE_API_URL || 'http://localhost:3000/api'}/auth/google`}
+            href="/api/auth/google"
             className="flex items-center justify-center w-full px-4 py-2 border border-slate-300 rounded-lg text-sm font-medium text-slate-700 bg-white hover:bg-slate-50 transition-colors"
           >
             <svg className="h-4 w-4 mr-2" viewBox="0 0 24 24">

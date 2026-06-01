@@ -1,8 +1,8 @@
-import { SESClient, SendEmailCommand } from '@aws-sdk/client-ses'
+import { Resend } from 'resend'
 import { logger } from '../config/logger'
 
-const sesClient = new SESClient({ region: process.env.AWS_REGION || 'eu-west-2' })
-const FROM_EMAIL = process.env.SES_FROM_EMAIL || 'noreply@quid.co.uk'
+const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null
+const FROM_EMAIL = process.env.RESEND_FROM_EMAIL || 'noreply@quid.co.uk'
 
 interface EmailOptions {
   to: string
@@ -12,25 +12,19 @@ interface EmailOptions {
 }
 
 export async function sendEmail(options: EmailOptions): Promise<void> {
-  if (!process.env.AWS_ACCESS_KEY_ID) {
-    logger.info(`[EMAIL SKIPPED - no AWS creds] To: ${options.to}\nSubject: ${options.subject}\n${options.text}`)
+  if (!resend) {
+    logger.info(`[EMAIL SKIPPED - no RESEND_API_KEY] To: ${options.to}\nSubject: ${options.subject}\n${options.text}`)
     return
   }
 
   try {
-    await sesClient.send(
-      new SendEmailCommand({
-        Source: FROM_EMAIL,
-        Destination: { ToAddresses: [options.to] },
-        Message: {
-          Subject: { Data: options.subject },
-          Body: {
-            Text: { Data: options.text },
-            Html: { Data: options.html },
-          },
-        },
-      })
-    )
+    await resend.emails.send({
+      from: FROM_EMAIL,
+      to: options.to,
+      subject: options.subject,
+      html: options.html,
+      text: options.text,
+    })
   } catch (err) {
     logger.error('Failed to send email', { error: err, to: options.to })
     throw err

@@ -1,11 +1,36 @@
 import dotenv from 'dotenv'
 import app from './app'
 import { logger } from './config/logger'
+import { testConnection } from './db'
 
 dotenv.config()
 
 const PORT = process.env.PORT || 3000
 
-app.listen(PORT, () => {
-  logger.info(`Quid backend running on port ${PORT}`)
-})
+async function startServer() {
+  try {
+    // Validate required environment variables
+    const required = ['JWT_SECRET', 'JWT_REFRESH_SECRET', 'DATABASE_URL']
+    const missing = required.filter(key => !process.env[key])
+    if (missing.length > 0) {
+      throw new Error(`Missing required environment variables: ${missing.join(', ')}`)
+    }
+
+    // Test database connection
+    logger.info('Testing database connection...')
+    const dbConnected = await testConnection()
+    if (!dbConnected) {
+      throw new Error('Failed to connect to database')
+    }
+    logger.info('Database connection successful')
+
+    app.listen(PORT, () => {
+      logger.info(`Quid backend running on port ${PORT}`)
+    })
+  } catch (err) {
+    logger.error('Failed to start server', err)
+    process.exit(1)
+  }
+}
+
+startServer()

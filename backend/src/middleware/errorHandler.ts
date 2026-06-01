@@ -9,9 +9,13 @@ export function errorHandler(
 ): void {
   logger.error(err.stack || err.message)
 
-  res.status(500).json({
-    error: process.env.NODE_ENV === 'production'
-      ? 'Internal server error'
-      : err.message,
+  const statusCode = (err as any).statusCode || 500
+  const message = process.env.NODE_ENV === 'production'
+    ? statusCode === 500 ? 'Internal server error' : err.message
+    : err.message
+
+  res.status(statusCode).json({
+    error: message,
+    ...(process.env.NODE_ENV !== 'production' && { stack: err.stack }),
   })
 }

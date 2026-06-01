@@ -1,14 +1,13 @@
 import express from 'express'
 import cors from 'cors'
 import helmet from 'helmet'
-import dotenv from 'dotenv'
 import cookieParser from 'cookie-parser'
 import rateLimit from 'express-rate-limit'
 
 import { errorHandler } from '../backend/src/middleware/errorHandler'
 import routes from '../backend/src/routes'
-
-dotenv.config()
+import { testConnection } from '../backend/src/db'
+import { logger } from '../backend/src/config/logger'
 
 const app = express()
 
@@ -44,8 +43,21 @@ app.use('/api/', limiter)
 
 app.use('/api', routes)
 
-app.get('/api/health', (_req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() })
+app.get('/api/health', async (_req, res) => {
+  try {
+    const dbHealthy = await testConnection()
+    res.json({
+      status: dbHealthy ? 'ok' : 'degraded',
+      timestamp: new Date().toISOString(),
+      database: dbHealthy ? 'connected' : 'disconnected'
+    })
+  } catch (err) {
+    res.status(503).json({
+      status: 'error',
+      timestamp: new Date().toISOString(),
+      error: 'Health check failed'
+    })
+  }
 })
 
 app.use(errorHandler)

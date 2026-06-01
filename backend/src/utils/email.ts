@@ -12,8 +12,8 @@ interface EmailOptions {
 }
 
 export async function sendEmail(options: EmailOptions): Promise<void> {
-  if (process.env.NODE_ENV === 'development' && !process.env.AWS_ACCESS_KEY_ID) {
-    logger.info(`[DEV EMAIL] To: ${options.to}\nSubject: ${options.subject}\n${options.text}`)
+  if (!process.env.AWS_ACCESS_KEY_ID) {
+    logger.info(`[EMAIL SKIPPED - no AWS creds] To: ${options.to}\nSubject: ${options.subject}\n${options.text}`)
     return
   }
 

@@ -259,6 +259,17 @@ router.post('/forgot-password', body('email').isEmail(), async (req, res) => {
     )
 
     if (result.rows.length > 0) {
+      // For dev/testing: return token in response instead of email
+      // TODO: Switch to email once domain is verified with Resend
+      if (process.env.NODE_ENV === 'development' || !resend) {
+        res.json({ 
+          message: 'Password reset token generated (dev mode)',
+          token: resetToken,
+          resetUrl: `${FRONTEND_URL}/reset-password?token=${resetToken}`
+        })
+        return
+      }
+
       await sendEmail({
         to: email,
         subject: 'Reset your Quid password',

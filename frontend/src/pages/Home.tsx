@@ -1,221 +1,446 @@
 import { Link } from 'react-router-dom'
-import { ArrowUpRight, Sparkles, Bolt } from 'lucide-react'
+import { motion, useInView, Variants } from 'framer-motion'
+import { useRef } from 'react'
+import {
+  ArrowUpRight,
+  ShieldCheck,
+  Sparkles,
+  Shield,
+  Users,
+  Star,
+  Search,
+  Zap,
+  Lock,
+  BarChart3,
+  Eye,
+  TrendingUp,
+  ArrowRight,
+  ChevronLeft,
+  ChevronRight,
+  PlayCircle,
+  Landmark,
+  DollarSign,
+  MessageSquare,
+  ToggleLeft,
+} from 'lucide-react'
 
-const metrics = [
-  { label: 'People saving with Quid', value: '250,000+' },
-  { label: 'Total saved', value: '£18.4M+' },
-  { label: 'Switches this month', value: '14,381' },
-  { label: 'Average saving / user', value: '£287' },
-]
+/* ─── Animation variants ─── */
+const fadeUp: Variants = {
+  hidden: { opacity: 0, y: 40 },
+  visible: (i = 0) => ({ opacity: 1, y: 0, transition: { delay: i * 0.1, duration: 0.6, ease: 'easeOut' } }),
+}
 
-const processSteps = [
-  {
-    title: 'Connect securely',
-    detail: 'Link all your UK accounts in under 60 seconds.',
-  },
-  {
-    title: 'Discover overpayments',
-    detail: 'AI scans your feeds for spikes, duplicates, and renewal shocks.',
-  },
-  {
-    title: 'Switch instantly',
-    detail: 'See the best deals and automate the switch with one tap.',
-  },
-  {
-    title: 'Stay protected',
-    detail: 'Quid Shield monitors price changes 24/7 so you never overpay again.',
-  },
-]
+const slideRight: Variants = {
+  hidden: { opacity: 0, x: 60 },
+  visible: { opacity: 1, x: 0, transition: { duration: 0.7, ease: 'easeOut' } },
+}
 
-const opportunityCards = [
-  { title: 'Car insurance', value: '£712/year', tag: 'Very High', color: 'border-rose-400/40 text-rose-300' },
-  { title: 'Broadband', value: '£216/year', tag: 'High', color: 'border-emerald-400/40 text-emerald-300' },
-  { title: 'Energy', value: '£438/year', tag: 'High', color: 'border-amber-400/40 text-amber-300' },
-  { title: 'Subscriptions', value: '£156/year', tag: 'Medium', color: 'border-sky-400/40 text-sky-300' },
-]
+const staggerContainer: Variants = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.12 } },
+}
 
-export default function Home() {
+const childFadeUp: Variants = {
+  hidden: { opacity: 0, y: 30 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: 'easeOut' } },
+}
+
+/* ─── Reusable animated wrapper ─── */
+function FadeIn({ children, className, delay = 0, once = true }: { children: React.ReactNode; className?: string; delay?: number; once?: boolean }) {
+  const ref = useRef(null)
+  const isInView = useInView(ref, { once, margin: '-60px' })
   return (
-    <div className="min-h-screen bg-[#070b17] text-white">
-      <Hero />
-      <main className="relative z-10 mx-auto flex max-w-6xl flex-col gap-16 px-4 pb-20 pt-10">
-        <TrustBadgeRow />
-        <ProcessGrid />
-        <OpportunityGrid />
-        <MetricsPanel />
-        <CTA />
-      </main>
-    </div>
+    <motion.div ref={ref} initial="hidden" animate={isInView ? 'visible' : 'hidden'} variants={fadeUp} custom={delay} className={className}>
+      {children}
+    </motion.div>
   )
 }
 
-function Hero() {
+function StaggerContainer({ children, className }: { children: React.ReactNode; className?: string }) {
+  const ref = useRef(null)
+  const isInView = useInView(ref, { once: true, margin: '-60px' })
   return (
-    <section className="relative overflow-hidden rounded-[32px] border border-white/10 bg-gradient-to-br from-[#120e2c] via-[#1a2137] to-[#140d25] p-10 shadow-[0_40px_80px_rgba(3,7,18,0.8)]">
-      <div className="absolute inset-0 opacity-40 blur-3xl" style={{ background: 'radial-gradient(circle at 20% 20%, rgba(59,130,246,0.4), transparent 40%), radial-gradient(circle at 80% 0%, rgba(236,72,153,0.55), transparent 30%)' }} />
-      <div className="relative grid gap-12 lg:grid-cols-2">
-        <div className="space-y-6">
-          <div className="inline-flex items-center gap-2 rounded-full border border-white/20 px-4 py-1 text-xs uppercase tracking-[0.3em] text-white/70">
-            <Sparkles className="h-4 w-4 text-emerald-300" />
-            AI Financial Guardian
-          </div>
-          <h1 className="text-5xl font-bold leading-tight text-white">
-            Stop overpaying. Let AI protect your money.
-          </h1>
-          <p className="text-lg text-white/70">
-            Quid connects to your bank securely, finds hidden overpayments, and shows the best deals you can switch to in minutes.
-          </p>
-          <div className="flex flex-wrap gap-4">
-            <Link
-              to="/connect-bank"
-              className="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-[#7c3aed] to-[#0ea5e9] px-6 py-3 text-base font-semibold shadow-[0_20px_60px_rgba(14,165,233,0.35)]"
-            >
-              Get my savings report
-              <ArrowUpRight className="h-4 w-4" />
-            </Link>
-            <Link
-              to="/how-it-works"
-              className="inline-flex items-center gap-2 rounded-2xl border border-white/30 px-6 py-3 text-base font-semibold text-white/80 transition hover:text-white"
-            >
-              See how it works
-            </Link>
-          </div>
-          <div className="flex flex-wrap gap-6 text-sm text-white/60">
-            <div className="inline-flex items-center gap-2">
-              <span className="rounded-full bg-white/10 px-3 py-1">Bank-level security</span>
-              <span className="rounded-full bg-white/10 px-3 py-1">FCA regulated</span>
-            </div>
-          </div>
-        </div>
-        <div className="rounded-[30px] border border-white/10 bg-white/5 p-6 shadow-2xl">
-          <div className="space-y-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-white/60">Potential annual savings</p>
-                <p className="text-4xl font-bold">£2,847</p>
-              </div>
-              <div className="rounded-full border border-white/20 px-3 py-1 text-xs text-white/70">+23% vs last scan</div>
-            </div>
-            <div className="grid gap-4 md:grid-cols-2">
-              {opportunityCards.map((item) => (
-                <div key={item.title} className={`rounded-2xl border ${item.color} bg-white/5 p-4`}>  
-                  <p className="text-sm text-white/50">{item.title}</p>
-                  <p className="text-xl font-semibold text-white">{item.value}</p>
-                  <p className="text-xs uppercase text-white/40">{item.tag}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
+    <motion.div ref={ref} initial="hidden" animate={isInView ? 'visible' : 'hidden'} variants={staggerContainer} className={className}>
+      {children}
+    </motion.div>
   )
 }
 
-function TrustBadgeRow() {
-  const badges = ['Bank-level security', 'FCA regulated', 'No hidden fees', 'Trusted by 250K+ users']
+function StaggerItem({ children, className }: { children: React.ReactNode; className?: string }) {
+  return <motion.div variants={childFadeUp} className={className}>{children}</motion.div>
+}
+
+/* ─── Data ─── */
+const steps = [
+  { title: 'Connect securely', detail: 'Connect your bank in under 60 seconds using Open Banking.', Icon: Landmark },
+  { title: 'Discover overpayments', detail: 'Our AI scans thousands of deals to find every overpayment and money leak.', Icon: Search },
+  { title: 'Switch in minutes', detail: 'We show you the best deals and help you switch instantly with one tap.', Icon: Zap },
+  { title: 'Stay protected', detail: 'Quid Shield monitors 24/7 and protects you from price hikes.', Icon: Shield },
+]
+
+const features = [
+  { title: 'Quid Shield', detail: 'We watch for renewals, price hikes and hidden increases 24/7.', Icon: Shield, color: 'text-violet-600', bg: 'bg-violet-100' },
+  { title: 'Hidden Money Finder', detail: 'We find duplicated or forgotten subscriptions and unused services.', Icon: DollarSign, color: 'text-emerald-600', bg: 'bg-emerald-100' },
+  { title: 'AI Financial Coach', detail: 'Personalised advice that actually helps you save more money.', Icon: MessageSquare, color: 'text-blue-600', bg: 'bg-blue-100' },
+  { title: 'Autopilot Switching', detail: 'Set your top-ups and let Quid auto-switch when better deals appear.', Icon: ToggleLeft, color: 'text-amber-600', bg: 'bg-amber-100' },
+  { title: 'Community Insights', detail: 'Real-time insights from thousands of people switching every day.', Icon: Users, color: 'text-rose-600', bg: 'bg-rose-100' },
+]
+
+const statistics = [
+  { label: 'People saving with Quid', value: '250,000+', Icon: Users },
+  { label: 'Total saved by our users', value: '£18.4M+', Icon: TrendingUp },
+  { label: 'Switches this month', value: '14,381', Icon: Zap },
+  { label: 'Average saving per user', value: '£287', Icon: BarChart3 },
+]
+
+const testimonials = [
+  { quote: 'Quid found £742 in potential savings within 20 minutes. I switched my insurance instantly. Incredible!', author: 'Sarah M.', role: 'Founder', stars: 5, initial: 'SM' },
+  { quote: 'My broadband went up by £18 without notice. Quid Shield alerted me and saved me £320 a year.', author: 'James P.', role: 'Operations Lead', stars: 5, initial: 'JP' },
+  { quote: 'I didn\'t know I was paying for 3 subscriptions I never used. Quid helped me cancel them in seconds.', author: 'Olivia R.', role: 'Finance Director', stars: 5, initial: 'OR' },
+]
+
+const featuredLogos = ['MSE', 'BBC', 'Forbes', 'TechCrunch', 'This is Money', 'The Guardian']
+
+function StarRating({ count }: { count: number }) {
   return (
-    <div className="flex flex-wrap items-center gap-4 rounded-[28px] border border-white/10 bg-white/5 px-6 py-4 text-sm text-white/60">
-      {badges.map((badge) => (
-        <span key={badge} className="rounded-full border border-white/10 px-4 py-1">{badge}</span>
+    <div className="flex gap-0.5">
+      {Array.from({ length: count }).map((_, i) => (
+        <Star key={i} className="h-3.5 w-3.5 fill-emerald-500 text-emerald-500" />
       ))}
     </div>
   )
 }
 
-function ProcessGrid() {
+export default function Home() {
   return (
-    <section className="grid gap-6 rounded-[32px] border border-white/10 bg-white/5 p-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-3xl font-semibold">How Quid works</h2>
-          <p className="text-sm text-white/60">Four simple steps to stop overpaying.</p>
+    <div className="min-h-screen bg-[#04010a] text-white">
+      <Hero />
+      <TrustBadges />
+      <HowItWorks />
+      <FeatureHighlights />
+      <StatisticBar />
+      <Testimonials />
+      <FeaturedLogos />
+      <CTA />
+    </div>
+  )
+}
+
+/* ─── HERO ─── */
+function Hero() {
+  return (
+    <section className="relative overflow-hidden">
+      <div className="absolute right-0 top-1/2 h-[400px] w-[400px] -translate-y-1/2 translate-x-1/4 rounded-full bg-[#7c3aed]/20 blur-[100px] sm:h-[600px] sm:w-[600px] sm:blur-[120px]" />
+      <div className="relative mx-auto max-w-6xl px-4 pt-6 pb-10 sm:pt-10 sm:pb-16">
+        <div className="flex flex-col gap-8 sm:gap-10 lg:flex-row lg:items-center lg:gap-12">
+          {/* Left content */}
+          <motion.div
+            className="space-y-4 sm:space-y-6 lg:max-w-[50%]"
+            initial="hidden"
+            animate="visible"
+            variants={staggerContainer}
+          >
+            <motion.div variants={childFadeUp} className="inline-flex items-center gap-2 rounded-full border border-[#7c3aed]/40 bg-[#7c3aed]/10 px-4 py-1.5 text-xs font-medium uppercase tracking-wider text-[#a78bfa]">
+              <Sparkles className="h-3.5 w-3.5" />
+              AI Financial Guardian
+            </motion.div>
+            <motion.h1 variants={childFadeUp} className="text-3xl font-bold leading-[1.1] text-white sm:text-5xl lg:text-6xl">
+              Stop overpaying.<br className="hidden sm:block" />
+              Let AI protect<br className="hidden sm:block" />
+              your money.
+            </motion.h1>
+            <motion.p variants={childFadeUp} className="max-w-md text-sm leading-relaxed text-white/60 sm:text-base">
+              Quid connects to your bank securely, finds hidden overpayments and better deals, then helps you switch in minutes. We only win when you save.
+            </motion.p>
+            <motion.div variants={childFadeUp} className="flex flex-wrap gap-3 sm:gap-4">
+              <Link to="/connect-bank" className="inline-flex items-center gap-2 rounded-xl bg-[#7c3aed] px-5 py-2.5 text-sm font-semibold text-white shadow-[0_10px_40px_rgba(124,58,237,0.4)] transition hover:bg-[#6d28d9] active:scale-95 sm:px-6 sm:py-3">
+                Get my savings report <ArrowUpRight className="h-4 w-4" />
+              </Link>
+              <Link to="/how-it-works" className="inline-flex items-center gap-2 rounded-xl border border-white/20 bg-white/5 px-5 py-2.5 text-sm font-semibold text-white/80 backdrop-blur-sm transition hover:bg-white/10 hover:text-white active:scale-95 sm:px-6 sm:py-3">
+                <PlayCircle className="h-4 w-4" /> See how it works
+              </Link>
+            </motion.div>
+            <motion.div variants={childFadeUp} className="space-y-2 pt-2">
+              <StarRating count={5} />
+              <p className="text-xs text-white/50">4.8/5 from 1,200+ reviews</p>
+            </motion.div>
+            <motion.div variants={childFadeUp} className="space-y-2">
+              <p className="text-[10px] uppercase tracking-widest text-white/40">As featured in</p>
+              <div className="flex flex-wrap gap-3 sm:gap-4">
+                {['MSE', 'BBC', 'Forbes', 'TechCrunch'].map((l) => (
+                  <span key={l} className="text-sm font-semibold text-white/50">{l}</span>
+                ))}
+              </div>
+            </motion.div>
+          </motion.div>
+
+          {/* Phone mockup */}
+          <motion.div
+            className="relative mx-auto w-full max-w-[280px] sm:max-w-[340px] lg:mx-0 lg:ml-auto"
+            initial="hidden"
+            animate="visible"
+            variants={slideRight}
+          >
+            <motion.div
+              className="rounded-[36px] border border-white/10 bg-gradient-to-b from-[#1a1033] to-[#0d061a] p-4 shadow-2xl sm:p-5"
+              whileHover={{ scale: 1.02, transition: { duration: 0.3 } }}
+            >
+              <div className="mb-4 flex items-center justify-between">
+                <span className="text-sm font-bold text-white">quid</span>
+                <div className="flex gap-1"><div className="h-1.5 w-1.5 rounded-full bg-white/30" /><div className="h-1.5 w-1.5 rounded-full bg-white/30" /><div className="h-1.5 w-1.5 rounded-full bg-white/30" /></div>
+              </div>
+              <div className="mb-4 space-y-1">
+                <p className="text-[10px] uppercase tracking-widest text-white/40">Total savings found</p>
+                <p className="text-3xl font-bold text-white sm:text-4xl">£2,847</p>
+                <p className="text-xs text-emerald-400">+23% vs last scan</p>
+              </div>
+              <div className="mb-4 rounded-2xl border border-white/10 bg-gradient-to-br from-[#1a1a2e] to-[#12122a] p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-[10px] text-white/50">Financial Health Score</p>
+                    <p className="text-2xl font-bold text-white sm:text-3xl">78</p>
+                    <p className="text-[10px] text-emerald-400">+12 points vs last month</p>
+                  </div>
+                  <div className="relative h-14 w-14 sm:h-16 sm:w-16">
+                    <svg className="h-14 w-14 -rotate-90 sm:h-16 sm:w-16" viewBox="0 0 36 36">
+                      <path className="text-white/10" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" strokeWidth="3" />
+                      <path className="text-emerald-500" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" strokeWidth="3" strokeDasharray="78, 100" />
+                    </svg>
+                    <div className="absolute inset-0 flex items-center justify-center"><span className="text-[10px] font-bold text-emerald-400">Good</span></div>
+                  </div>
+                </div>
+              </div>
+              {[
+                { label: 'Insurance overpayment', value: '£712/year', icon: 'shield' as const, color: 'bg-emerald-500/20 text-emerald-400' },
+                { label: 'Broadband price increase', value: '£216/year', icon: 'zap' as const, color: 'bg-amber-500/20 text-amber-400' },
+                { label: '4 unused subscriptions', value: '£156/year', icon: 'eye' as const, color: 'bg-rose-500/20 text-rose-400' },
+              ].map((item) => (
+                <div key={item.label} className="mb-2 flex items-center gap-3 rounded-2xl border border-white/5 bg-[#12122a]/80 p-3 sm:mb-3">
+                  <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full sm:h-10 sm:w-10 ${item.color}`}>
+                    {item.icon === 'shield' ? <Shield className="h-4 w-4" /> : item.icon === 'zap' ? <Zap className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="truncate text-xs font-medium text-white">{item.label}</p>
+                    <p className="text-xs text-white/50">{item.value}</p>
+                  </div>
+                  <ArrowRight className="h-4 w-4 shrink-0 text-white/30" />
+                </div>
+              ))}
+            </motion.div>
+          </motion.div>
         </div>
-        <button className="text-sm text-emerald-300 underline-offset-2 hover:underline">See details</button>
-      </div>
-      <div className="grid gap-4 md:grid-cols-4">
-        {processSteps.map((step) => (
-          <article key={step.title} className="space-y-3 rounded-2xl border border-white/10 bg-gradient-to-br from-white/5 to-white/0 p-4">
-            <div className="inline-flex items-center justify-center rounded-2xl bg-white/10 p-3">
-              <Bolt className="h-5 w-5 text-emerald-300" />
-            </div>
-            <h3 className="text-lg font-semibold">{step.title}</h3>
-            <p className="text-sm text-white/60">{step.detail}</p>
-          </article>
-        ))}
       </div>
     </section>
   )
 }
 
-function OpportunityGrid() {
+/* ─── TRUST BADGES (dark) ─── */
+function TrustBadges() {
+  const badges = [
+    { title: 'Bank-level security', detail: 'Open Banking Standards', Icon: Lock },
+    { title: 'FCA regulated', detail: 'Your data is protected', Icon: ShieldCheck },
+    { title: 'No hidden fees', detail: 'We only win when you save', Icon: Sparkles },
+    { title: 'Trusted by 250,000+ users', detail: '250,000+ users', Icon: Users },
+  ]
   return (
-    <section className="grid gap-6 rounded-[32px] border border-white/10 bg-gradient-to-br from-[#0b1223] to-[#090816] p-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-3xl font-semibold">Top opportunities</h2>
-          <p className="text-sm text-white/60">Actionable alerts curated by Quid Shield.</p>
-        </div>
-        <button className="text-sm text-white/70 underline-offset-2 hover:text-white">See all (12)</button>
-      </div>
-      <div className="grid gap-4 md:grid-cols-4">
-        {opportunityCards.map((card) => (
-          <div key={card.title} className={`rounded-3xl border bg-white/5 p-5 ${card.color}`}>
-            <div className="text-sm uppercase tracking-widest text-white/40">{card.title}</div>
-            <div className="mt-3 text-2xl font-semibold text-white">{card.value}</div>
-            <div className="text-xs text-white/60">{card.tag} alert</div>
-          </div>
+    <StaggerContainer className="mx-auto max-w-6xl px-4 pb-10 sm:pb-16">
+      <div className="flex flex-wrap items-center justify-center gap-6 sm:gap-8 md:gap-12">
+        {badges.map(({ title, detail, Icon }) => (
+          <StaggerItem key={title}>
+            <div className="flex items-center gap-3">
+              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-white/10 sm:h-10 sm:w-10">
+                <Icon className="h-4 w-4 text-white/70" />
+              </div>
+              <div>
+                <p className="text-xs font-medium text-white sm:text-sm">{title}</p>
+                <p className="text-[10px] text-white/50 sm:text-xs">{detail}</p>
+              </div>
+            </div>
+          </StaggerItem>
         ))}
+      </div>
+    </StaggerContainer>
+  )
+}
+
+/* ─── HOW IT WORKS (light) ─── */
+function HowItWorks() {
+  return (
+    <section className="bg-white py-16 sm:py-20">
+      <div className="mx-auto max-w-6xl px-4">
+        <FadeIn className="space-y-3 text-center">
+          <h2 className="text-2xl font-bold text-slate-900 sm:text-3xl md:text-4xl">How Quid works</h2>
+          <p className="text-sm text-slate-500 sm:text-base">Four simple steps to stop overpaying.</p>
+        </FadeIn>
+        <StaggerContainer className="relative mt-10 grid gap-8 sm:mt-12 md:grid-cols-4">
+          {steps.map((step, idx) => {
+            const Icon = step.Icon
+            return (
+              <StaggerItem key={step.title} className="relative text-center">
+                <motion.div
+                  className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-[#7c3aed]/15 to-[#6366f1]/10 sm:h-16 sm:w-16"
+                  whileHover={{ scale: 1.1, transition: { duration: 0.2 } }}
+                >
+                  <Icon className="h-6 w-6 text-[#7c3aed] sm:h-7 sm:w-7" />
+                </motion.div>
+                <h3 className="text-sm font-semibold text-slate-900">{step.title}</h3>
+                <p className="mt-2 text-xs leading-relaxed text-slate-500 sm:text-sm">{step.detail}</p>
+                {idx < steps.length - 1 && (
+                  <div className="absolute right-1/2 top-8 hidden translate-x-1/2 md:right-0 md:block md:translate-x-1/2">
+                    <ArrowRight className="h-5 w-5 text-slate-300" />
+                  </div>
+                )}
+              </StaggerItem>
+            )
+          })}
+        </StaggerContainer>
       </div>
     </section>
   )
 }
 
-function MetricsPanel() {
+/* ─── FEATURES (light) ─── */
+function FeatureHighlights() {
   return (
-    <section className="grid gap-6 rounded-[32px] border border-white/10 bg-white/5 p-6 md:grid-cols-2">
-      <div className="space-y-4">
-        <h2 className="text-3xl font-semibold">Real people. Real savings.</h2>
-        <p className="text-sm text-white/60">Quid keeps an eye on your bills, savings and switches so you stay ahead of renewals.</p>
-        <div className="grid gap-4 sm:grid-cols-2">
-          {metrics.map((metric) => (
-            <div key={metric.label} className="rounded-2xl border border-white/10 bg-black/30 px-4 py-5">
-              <p className="text-lg font-bold text-white">{metric.value}</p>
-              <p className="text-xs uppercase tracking-[0.3em] text-white/40">{metric.label}</p>
-            </div>
+    <section className="bg-white pb-16 sm:pb-20">
+      <div className="mx-auto max-w-6xl px-4">
+        <FadeIn className="space-y-2 text-center">
+          <p className="text-sm text-slate-500">More than a comparison site.</p>
+          <h2 className="text-2xl font-bold text-slate-900 sm:text-3xl md:text-4xl">Quid is your <span className="text-[#7c3aed]">financial guardian</span>.</h2>
+        </FadeIn>
+        <StaggerContainer className="mt-10 grid gap-6 sm:mt-12 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
+          {features.map((feature) => {
+            const Icon = feature.Icon
+            return (
+              <StaggerItem key={feature.title}>
+                <motion.article className="text-center" whileHover={{ y: -4, transition: { duration: 0.2 } }}>
+                  <div className={`mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl sm:h-14 sm:w-14 ${feature.bg}`}>
+                    <Icon className={`h-5 w-5 sm:h-6 sm:w-6 ${feature.color}`} />
+                  </div>
+                  <h3 className="text-sm font-semibold text-slate-900">{feature.title}</h3>
+                  <p className="mt-2 text-xs leading-relaxed text-slate-500 sm:text-sm">{feature.detail}</p>
+                </motion.article>
+              </StaggerItem>
+            )
+          })}
+        </StaggerContainer>
+      </div>
+    </section>
+  )
+}
+
+/* ─── STATS (dark) ─── */
+function StatisticBar() {
+  return (
+    <section className="bg-[#0f0a1e] py-12 sm:py-14">
+      <div className="mx-auto max-w-6xl px-4">
+        <FadeIn className="mb-8 sm:mb-10">
+          <h2 className="text-center text-xl font-bold text-white sm:text-2xl">Real people. Real savings.</h2>
+        </FadeIn>
+        <StaggerContainer className="grid gap-6 sm:gap-8 sm:grid-cols-2 md:grid-cols-4">
+          {statistics.map((stat) => {
+            const Icon = stat.Icon
+            return (
+              <StaggerItem key={stat.label}>
+                <div className="flex items-center justify-center gap-3">
+                  <Icon className="h-5 w-5 text-[#a78bfa]" />
+                  <div>
+                    <p className="text-xl font-bold text-white sm:text-2xl">{stat.value}</p>
+                    <p className="text-[10px] text-white/60 sm:text-xs">{stat.label}</p>
+                  </div>
+                </div>
+              </StaggerItem>
+            )
+          })}
+        </StaggerContainer>
+      </div>
+    </section>
+  )
+}
+
+/* ─── TESTIMONIALS (light) ─── */
+function Testimonials() {
+  return (
+    <section className="bg-white py-16 sm:py-20">
+      <div className="mx-auto max-w-6xl px-4">
+        <FadeIn className="text-center">
+          <h2 className="text-2xl font-bold text-slate-900 sm:text-3xl md:text-4xl">Loved by thousands</h2>
+        </FadeIn>
+        <div className="relative mt-10 flex items-center gap-3 sm:mt-12 sm:gap-4">
+          <button className="hidden shrink-0 rounded-full border border-slate-200 bg-white p-2 text-slate-400 shadow-sm transition hover:text-slate-600 md:block">
+            <ChevronLeft className="h-5 w-5" />
+          </button>
+          <StaggerContainer className="grid flex-1 gap-4 sm:gap-6 md:grid-cols-3">
+            {testimonials.map((t) => (
+              <StaggerItem key={t.author}>
+                <motion.article
+                  className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6"
+                  whileHover={{ y: -4, boxShadow: '0 10px 40px rgba(0,0,0,0.08)', transition: { duration: 0.2 } }}
+                >
+                  <p className="text-xs leading-relaxed text-slate-600 sm:text-sm">"{t.quote}"</p>
+                  <div className="mt-4 flex items-center gap-3">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-[#7c3aed] to-[#6366f1] text-xs font-bold text-white sm:h-10 sm:w-10">
+                      {t.initial}
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-slate-900">{t.author}</p>
+                      <StarRating count={t.stars} />
+                    </div>
+                  </div>
+                </motion.article>
+              </StaggerItem>
+            ))}
+          </StaggerContainer>
+          <button className="hidden shrink-0 rounded-full border border-slate-200 bg-white p-2 text-slate-400 shadow-sm transition hover:text-slate-600 md:block">
+            <ChevronRight className="h-5 w-5" />
+          </button>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+/* ─── FEATURED LOGOS (light) ─── */
+function FeaturedLogos() {
+  return (
+    <section className="bg-white pb-16 sm:pb-20">
+      <FadeIn className="mx-auto max-w-6xl px-4 text-center">
+        <p className="text-[10px] uppercase tracking-widest text-slate-400">As featured in</p>
+        <div className="mt-6 flex flex-wrap items-center justify-center gap-4 sm:gap-6">
+          {featuredLogos.map((logo) => (
+            <motion.span
+              key={logo}
+              className="text-base font-bold text-slate-400 sm:text-lg"
+              whileHover={{ scale: 1.05, color: '#7c3aed', transition: { duration: 0.2 } }}
+            >
+              {logo}
+            </motion.span>
           ))}
         </div>
-      </div>
-      <div className="space-y-6 rounded-3xl border border-white/10 bg-gradient-to-br from-[#090a16] to-[#0d0f1d] p-6 shadow-[0_30px_60px_rgba(15,23,42,0.8)]">
-        <h3 className="text-xl font-semibold">Loved by thousands</h3>
-        <div className="space-y-4 text-sm text-white/60">
-          <p>“Quid found me £472 in potential savings within minutes.” — Sarah M.</p>
-          <p>“Broadband price notice in 2 taps. The AI coach is a game changer.” — James P.</p>
-          <p>“I didn’t know I was overpaying on 3 subscriptions—Quid cancelled them instantly.” — Olivia R.</p>
-        </div>
-      </div>
+      </FadeIn>
     </section>
   )
 }
 
+/* ─── CTA (dark) ─── */
 function CTA() {
   return (
-    <section className="flex flex-col items-center gap-6 rounded-[36px] border border-white/20 bg-gradient-to-r from-[#3b82f6]/20 via-[#8b5cf6]/20 to-[#c084fc]/20 p-10 text-center">
-      <p className="text-sm uppercase tracking-[0.5em] text-white/70">Ready to stop overpaying?</p>
-      <h2 className="text-4xl font-semibold">Get a free savings report in 60 seconds.</h2>
-      <div className="flex flex-wrap justify-center gap-4">
-        <Link
-          to="/connect-bank"
-          className="rounded-2xl bg-white px-8 py-3 text-lg font-semibold text-slate-900 shadow-lg shadow-slate-900/40 transition hover:-translate-y-1"
-        >
-          Connect my bank
-        </Link>
-        <Link
-          to="/dashboard"
-          className="rounded-2xl border border-white/70 px-6 py-3 text-lg font-semibold text-white/80 hover:text-white"
-        >
-          View dashboard
-        </Link>
+    <section className="bg-[#0f0a1e] py-14 sm:py-16">
+      <div className="mx-auto max-w-4xl px-4 text-center">
+        <FadeIn className="space-y-3">
+          <h2 className="text-2xl font-bold text-white sm:text-3xl md:text-4xl">Ready to stop overpaying?</h2>
+          <p className="text-xs text-white/60 sm:text-sm">Join 250,000+ people who are already saving with their AI financial guardian.</p>
+        </FadeIn>
+        <FadeIn delay={0.2} className="mt-8 flex flex-col items-center gap-4">
+          <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
+            <Link to="/connect-bank" className="inline-flex items-center gap-2 rounded-xl bg-[#7c3aed] px-7 py-3 text-sm font-semibold text-white shadow-[0_10px_40px_rgba(124,58,237,0.4)] transition hover:bg-[#6d28d9] sm:px-8 sm:py-3.5">
+              Get my free savings report <ArrowUpRight className="h-4 w-4" />
+            </Link>
+          </motion.div>
+          <p className="flex items-center gap-2 text-[10px] text-white/40 sm:text-xs">
+            <Lock className="h-3 w-3" /> It's free, secure and takes less than 60 seconds.
+          </p>
+        </FadeIn>
       </div>
     </section>
   )

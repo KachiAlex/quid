@@ -47,27 +47,18 @@ router.post(
       }
 
       const passwordHash = await hashPassword(password)
-      const verificationToken = generateEmailVerificationToken()
-      const verificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000)
 
       const result = await pool.query(
-        `INSERT INTO users (email, password_hash, first_name, last_name, email_verification_token, email_verification_expires)
-         VALUES ($1, $2, $3, $4, $5, $6)
+        `INSERT INTO users (email, password_hash, first_name, last_name, email_verified_at)
+         VALUES ($1, $2, $3, $4, NOW())
          RETURNING user_id, email`,
-        [email, passwordHash, firstName || null, lastName || null, verificationToken, verificationExpires]
+        [email, passwordHash, firstName || null, lastName || null]
       )
 
       const user = result.rows[0]
 
-      await sendEmail({
-        to: email,
-        subject: 'Verify your Quid account',
-        html: getVerificationEmailHtml(verificationToken, FRONTEND_URL),
-        text: `Verify your account: ${FRONTEND_URL}/verify-email?token=${verificationToken}`,
-      })
-
       res.status(201).json({
-        message: 'Registration successful. Please check your email to verify your account.',
+        message: 'Registration successful.',
         userId: user.user_id,
       })
     } catch (err) {

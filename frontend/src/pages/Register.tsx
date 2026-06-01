@@ -58,12 +58,12 @@ export default function Register() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
           </div>
-          <h2 className="text-xl font-bold text-slate-900 mb-2">Check your email</h2>
+          <h2 className="text-xl font-bold text-slate-900 mb-2">Account created!</h2>
           <p className="text-slate-600 text-sm mb-6">
-            We sent a verification link to <strong>{email}</strong>. Click it to activate your account.
+            Your account is ready. Sign in to get started.
           </p>
           <Link to="/login" className="text-quid-600 hover:underline text-sm font-medium">
-            Back to sign in
+            Go to sign in
           </Link>
         </div>
       </main>

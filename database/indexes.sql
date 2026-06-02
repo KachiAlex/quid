@@ -26,3 +26,7 @@ CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_transactions_user_date
 -- Bank connections: active connections per user
 CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_bank_connections_user_status
   ON bank_connections(user_id, status) WHERE status = 'active';
+
+-- Raw transactions: deduplication during sync
+CREATE UNIQUE INDEX CONCURRENTLY IF NOT EXISTS idx_raw_transactions_unique
+  ON raw_transactions(connection_id, truelayer_transaction_id);

@@ -14,6 +14,9 @@ const CLIENT_SECRET = process.env.TRUELAYER_CLIENT_SECRET || ''
 const REDIRECT_URI = process.env.TRUELAYER_REDIRECT_URI || 'http://localhost:3000/api/banking/callback'
 
 export function getTrueLayerAuthUrl(state: string): string {
+  if (!CLIENT_ID || !CLIENT_SECRET) {
+    throw new Error('TrueLayer CLIENT_ID and CLIENT_SECRET must be configured')
+  }
   const params = new URLSearchParams({
     response_type: 'code',
     client_id: CLIENT_ID,
@@ -26,55 +29,73 @@ export function getTrueLayerAuthUrl(state: string): string {
 }
 
 export async function exchangeCode(code: string) {
-  const tokenRes = await axios.post(
-    `${TL_AUTH_BASE}/connect/token`,
-    new URLSearchParams({
-      grant_type: 'authorization_code',
-      code,
-      redirect_uri: REDIRECT_URI,
-      client_id: CLIENT_ID,
-      client_secret: CLIENT_SECRET,
-    }),
-    { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
-  )
-  return tokenRes.data as {
-    access_token: string
-    refresh_token: string
-    expires_in: number
-    token_type: string
+  try {
+    const tokenRes = await axios.post(
+      `${TL_AUTH_BASE}/connect/token`,
+      new URLSearchParams({
+        grant_type: 'authorization_code',
+        code,
+        redirect_uri: REDIRECT_URI,
+        client_id: CLIENT_ID,
+        client_secret: CLIENT_SECRET,
+      }),
+      { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
+    )
+    logger.info('TrueLayer token exchange successful')
+    return tokenRes.data as {
+      access_token: string
+      refresh_token: string
+      expires_in: number
+      token_type: string
+    }
+  } catch (err: any) {
+    logger.error('TrueLayer token exchange failed', err.response?.data || err.message)
+    throw new Error(`Token exchange failed: ${err.response?.data?.error_description || err.response?.data?.error || err.message}`)
   }
 }
 
 export async function refreshAccessToken(refreshToken: string) {
-  const tokenRes = await axios.post(
-    `${TL_AUTH_BASE}/connect/token`,
-    new URLSearchParams({
-      grant_type: 'refresh_token',
-      refresh_token: refreshToken,
-      client_id: CLIENT_ID,
-      client_secret: CLIENT_SECRET,
-    }),
-    { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
-  )
-  return tokenRes.data as {
-    access_token: string
-    refresh_token: string
-    expires_in: number
-    token_type: string
+  try {
+    const tokenRes = await axios.post(
+      `${TL_AUTH_BASE}/connect/token`,
+      new URLSearchParams({
+        grant_type: 'refresh_token',
+        refresh_token: refreshToken,
+        client_id: CLIENT_ID,
+        client_secret: CLIENT_SECRET,
+      }),
+      { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
+    )
+    logger.info('TrueLayer token refresh successful')
+    return tokenRes.data as {
+      access_token: string
+      refresh_token: string
+      expires_in: number
+      token_type: string
+    }
+  } catch (err: any) {
+    logger.error('TrueLayer token refresh failed', err.response?.data || err.message)
+    throw new Error(`Token refresh failed: ${err.response?.data?.error_description || err.response?.data?.error || err.message}`)
   }
 }
 
 export async function getAccounts(accessToken: string) {
-  const res = await axios.get(`${TL_API_BASE}/data/v1/accounts`, {
-    headers: { Authorization: `Bearer ${accessToken}` },
-  })
-  return res.data.results as Array<{
-    account_id: string
-    display_name?: string
-    account_type?: string
-    currency?: string
-    provider?: { display_name: string; provider_id: string }
-  }>
+  try {
+    const res = await axios.get(`${TL_API_BASE}/data/v1/accounts`, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    })
+    logger.info(`Fetched ${res.data.results?.length || 0} accounts from TrueLayer`)
+    return (res.data.results || []) as Array<{
+      account_id: string
+      display_name?: string
+      account_type?: string
+      currency?: string
+      provider?: { display_name: string; provider_id: string }
+    }>
+  } catch (err: any) {
+    logger.error('TrueLayer getAccounts failed', err.response?.data || err.message)
+    throw new Error(`Failed to fetch accounts: ${err.response?.data?.error || err.message}`)
+  }
 }
 
 export async function getTransactions(accessToken: string, accountId: string, from?: string, to?: string) {
@@ -82,22 +103,29 @@ export async function getTransactions(accessToken: string, accountId: string, fr
   if (from) params.set('from', from)
   if (to) params.set('to', to)
   const url = `${TL_API_BASE}/data/v1/accounts/${accountId}/transactions?${params.toString()}`
-  const res = await axios.get(url, {
-    headers: { Authorization: `Bearer ${accessToken}` },
-  })
-  return res.data.results as Array<{
-    transaction_id: string
-    account_id: string
-    timestamp: string
-    description: string
-    transaction_type: 'DEBIT' | 'CREDIT'
-    transaction_category?: string
-    amount: number
-    currency: string
-    running_balance?: { amount: number; currency: string }
-    meta?: { provider_transaction_category?: string; provider_reference_number?: string }
-    merchant_name?: string
-  }>
+  try {
+    const res = await axios.get(url, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    })
+    const txs = (res.data.results || []) as Array<{
+      transaction_id: string
+      account_id: string
+      timestamp: string
+      description: string
+      transaction_type: 'DEBIT' | 'CREDIT'
+      transaction_category?: string
+      amount: number
+      currency: string
+      running_balance?: { amount: number; currency: string }
+      meta?: { provider_transaction_category?: string; provider_reference_number?: string }
+      merchant_name?: string
+    }>
+    logger.info(`Fetched ${txs.length} transactions for account ${accountId} (${from || 'start'} to ${to || 'now'})`)
+    return txs
+  } catch (err: any) {
+    logger.error(`TrueLayer getTransactions failed for account ${accountId}`, err.response?.data || err.message)
+    throw new Error(`Failed to fetch transactions: ${err.response?.data?.error || err.message}`)
+  }
 }
 
 export async function storeTokens(
@@ -147,7 +175,7 @@ export async function getUserConnections(userId: string) {
   const result = await pool.query(
     `SELECT connection_id, bank_name, bank_id, status, connected_at, expires_at, last_sync_at
      FROM bank_connections
-     WHERE user_id = $1 AND deleted_at IS NULL
+     WHERE user_id = $1 AND status != 'revoked'
      ORDER BY connected_at DESC`,
     [userId]
   )
@@ -223,12 +251,20 @@ export async function insertRawTransactions(
     )
   }
   if (placeholders.length === 0) return
-  await pool.query(
-    `INSERT INTO raw_transactions
-     (connection_id, user_id, truelayer_transaction_id, account_id, amount, currency, description, merchant_name, transaction_type, transaction_category, transaction_date, running_balance, meta)
-     VALUES ${placeholders.join(', ')}`,
-    values
-  )
+  try {
+    await pool.query(
+      `INSERT INTO raw_transactions
+       (connection_id, user_id, truelayer_transaction_id, account_id, amount, currency, description, merchant_name, transaction_type, transaction_category, transaction_date, running_balance, meta)
+       VALUES ${placeholders.join(', ')}`,
+      values
+    )
+  } catch (err: any) {
+    if (err.code === '23505') {
+      logger.warn('Duplicate transaction(s) skipped during insert')
+      return
+    }
+    throw err
+  }
 }
 
 export async function purgeOldRawTransactions() {

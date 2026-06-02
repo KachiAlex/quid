@@ -11,10 +11,12 @@ import { errorHandler } from './middleware/errorHandler'
 import { csrfProtection, getCsrfToken } from './middleware/csrf'
 import routes from './routes'
 import { logger } from './config/logger'
+import { initSentry, sentryErrorHandler } from './config/sentry'
 
 dotenv.config()
 
 const app = express()
+initSentry(app).catch(() => {}) // non-blocking
 
 app.set('trust proxy', 1)
 
@@ -102,6 +104,7 @@ app.get('/health', async (_req, res) => {
   }
 })
 
+app.use(sentryErrorHandler())
 app.use(errorHandler)
 
 // Graceful shutdown

@@ -5,6 +5,7 @@ import cookieParser from 'cookie-parser'
 import rateLimit from 'express-rate-limit'
 
 import { errorHandler } from '../backend/src/middleware/errorHandler'
+import { csrfProtection, getCsrfToken } from '../backend/src/middleware/csrf'
 import routes from '../backend/src/routes'
 import { testConnection } from '../backend/src/db'
 import { logger } from '../backend/src/config/logger'
@@ -40,6 +41,10 @@ const limiter = rateLimit({
   legacyHeaders: false,
 })
 app.use('/api/', limiter)
+
+app.use('/api', csrfProtection)
+
+app.get('/api/csrf-token', getCsrfToken)
 
 app.use('/api', routes)
 

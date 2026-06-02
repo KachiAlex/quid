@@ -42,3 +42,6 @@ venv/
 # Docker volumes
 postgres_data/
 redis_data/
+
+.vercel
+.env*

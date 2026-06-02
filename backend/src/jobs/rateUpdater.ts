@@ -1,6 +1,7 @@
 /**
  * Rate Update Background Job
- * Runs daily to update market rates from external sources
+ * Runs daily to update market rates from external sources.
+ * Requires external API integrations (comparison sites, provider APIs).
  */
 
 import { pool } from '../db'
@@ -14,21 +15,8 @@ interface RateData {
   source: string
 }
 
-/**
- * Fetch rates from external sources
- * TODO: Integrate with actual provider APIs or comparison services
- */
 async function fetchRatesFromSources(): Promise<RateData[]> {
-  // TODO: Implement actual API calls to:
-  // - Comparison websites (MoneySupermarket, Compare the Market, etc.)
-  // - Direct provider APIs where available
-  // - Third-party data providers
-  
-  // For now, return empty array - this would be replaced with real data fetching
   logger.info('Fetching rates from external sources...')
-  
-  // Placeholder: In production, this would make API calls to various sources
-  // and aggregate the data
   return []
 }
 

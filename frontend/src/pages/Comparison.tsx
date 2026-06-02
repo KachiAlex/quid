@@ -34,33 +34,40 @@ export default function Comparison() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
-  // TODO: Fetch product and comparison data from API
-  // For now, using mock data
   useEffect(() => {
-    setLoading(false)
-    setProduct({
-      record_id: productId || '',
-      product_type: 'car_insurance',
-      provider_name: 'Admiral',
-      annual_cost: 450,
-      frequency: 'annual',
-      confidence_score: 0.9,
-    })
-    setComparison({
-      product_type: 'car_insurance',
-      current_provider: 'Admiral',
-      current_cost: 450,
-      best_provider: 'Aviva',
-      best_cost: 420,
-      saving: 30,
-      alternatives: [
-        { provider: 'Aviva', cost: 420, saving: 30 },
-        { provider: 'LV', cost: 425, saving: 25 },
-        { provider: 'Direct Line', cost: 435, saving: 15 },
-        { provider: 'Churchill', cost: 445, saving: 5 },
-      ],
-      last_updated: new Date().toISOString(),
-    })
+    if (!productId) {
+      setError('No product selected')
+      setLoading(false)
+      return
+    }
+    const fetchData = async () => {
+      setLoading(true)
+      setError('')
+      try {
+        const res = await api.get(`/analysis/products/${productId}/comparison`)
+        const { product: p, comparison: c, alternatives } = res.data
+        setProduct(p)
+        if (c) {
+          setComparison({
+            product_type: p.product_type,
+            current_provider: p.provider_name,
+            current_cost: parseFloat(p.annual_cost),
+            best_provider: c.best_provider,
+            best_cost: parseFloat(c.best_cost),
+            saving: parseFloat(c.saving),
+            alternatives: alternatives || [],
+            last_updated: c.compared_at,
+          })
+        } else {
+          setError('No comparison available for this product yet.')
+        }
+      } catch (err: any) {
+        setError(err.response?.data?.error || 'Failed to load comparison')
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchData()
   }, [productId])
 
   if (loading) {

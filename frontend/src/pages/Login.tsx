@@ -21,7 +21,7 @@ export default function Login() {
     try {
       const res = await api.post('/auth/login', { email, password })
       if (res.data.requireMfa) {
-        // TODO: redirect to MFA page
+        setError('MFA required. Please enter your authenticator code.')
         return
       }
       const profile = await api.get('/auth/me', {

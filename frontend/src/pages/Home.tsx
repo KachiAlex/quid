@@ -11,12 +11,8 @@ import {
   Search,
   Zap,
   Lock,
-  BarChart3,
   Eye,
-  TrendingUp,
   ArrowRight,
-  ChevronLeft,
-  ChevronRight,
   PlayCircle,
   Landmark,
   DollarSign,
@@ -84,19 +80,6 @@ const features = [
   { title: 'AI Financial Coach', detail: 'Personalised advice that actually helps you save more money.', Icon: MessageSquare, color: 'text-blue-600', bg: 'bg-blue-100' },
   { title: 'Autopilot Switching', detail: 'Set your top-ups and let Quid auto-switch when better deals appear.', Icon: ToggleLeft, color: 'text-amber-600', bg: 'bg-amber-100' },
   { title: 'Community Insights', detail: 'Real-time insights from thousands of people switching every day.', Icon: Users, color: 'text-rose-600', bg: 'bg-rose-100' },
-]
-
-const statistics = [
-  { label: 'People saving with Quid', value: '250,000+', Icon: Users },
-  { label: 'Total saved by our users', value: '£18.4M+', Icon: TrendingUp },
-  { label: 'Switches this month', value: '14,381', Icon: Zap },
-  { label: 'Average saving per user', value: '£287', Icon: BarChart3 },
-]
-
-const testimonials = [
-  { quote: 'Quid found £742 in potential savings within 20 minutes. I switched my insurance instantly. Incredible!', author: 'Sarah M.', role: 'Founder', stars: 5, initial: 'SM' },
-  { quote: 'My broadband went up by £18 without notice. Quid Shield alerted me and saved me £320 a year.', author: 'James P.', role: 'Operations Lead', stars: 5, initial: 'JP' },
-  { quote: 'I didn\'t know I was paying for 3 subscriptions I never used. Quid helped me cancel them in seconds.', author: 'Olivia R.', role: 'Finance Director', stars: 5, initial: 'OR' },
 ]
 
 const featuredLogos = ['MSE', 'BBC', 'Forbes', 'TechCrunch', 'This is Money', 'The Guardian']
@@ -333,26 +316,11 @@ function FeatureHighlights() {
 function StatisticBar() {
   return (
     <section className="bg-[#0f0a1e] py-12 sm:py-14">
-      <div className="mx-auto max-w-6xl px-4">
-        <FadeIn className="mb-8 sm:mb-10">
-          <h2 className="text-center text-xl font-bold text-white sm:text-2xl">Real people. Real savings.</h2>
+      <div className="mx-auto max-w-6xl px-4 text-center">
+        <FadeIn>
+          <h2 className="text-xl font-bold text-white sm:text-2xl">Real people. Real savings.</h2>
+          <p className="mt-3 text-sm text-white/60">Connect your bank to see your personalised savings report.</p>
         </FadeIn>
-        <StaggerContainer className="grid gap-6 sm:gap-8 sm:grid-cols-2 md:grid-cols-4">
-          {statistics.map((stat) => {
-            const Icon = stat.Icon
-            return (
-              <StaggerItem key={stat.label}>
-                <div className="flex items-center justify-center gap-3">
-                  <Icon className="h-5 w-5 text-[#a78bfa]" />
-                  <div>
-                    <p className="text-xl font-bold text-white sm:text-2xl">{stat.value}</p>
-                    <p className="text-[10px] text-white/60 sm:text-xs">{stat.label}</p>
-                  </div>
-                </div>
-              </StaggerItem>
-            )
-          })}
-        </StaggerContainer>
       </div>
     </section>
   )
@@ -362,39 +330,11 @@ function StatisticBar() {
 function Testimonials() {
   return (
     <section className="bg-white py-16 sm:py-20">
-      <div className="mx-auto max-w-6xl px-4">
-        <FadeIn className="text-center">
-          <h2 className="text-2xl font-bold text-slate-900 sm:text-3xl md:text-4xl">Loved by thousands</h2>
+      <div className="mx-auto max-w-6xl px-4 text-center">
+        <FadeIn>
+          <h2 className="text-2xl font-bold text-slate-900 sm:text-3xl md:text-4xl">Trusted by savers</h2>
+          <p className="mt-3 text-sm text-slate-500">Connect your bank to discover how much you could save.</p>
         </FadeIn>
-        <div className="relative mt-10 flex items-center gap-3 sm:mt-12 sm:gap-4">
-          <button className="hidden shrink-0 rounded-full border border-slate-200 bg-white p-2 text-slate-400 shadow-sm transition hover:text-slate-600 md:block">
-            <ChevronLeft className="h-5 w-5" />
-          </button>
-          <StaggerContainer className="grid flex-1 gap-4 sm:gap-6 md:grid-cols-3">
-            {testimonials.map((t) => (
-              <StaggerItem key={t.author}>
-                <motion.article
-                  className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6"
-                  whileHover={{ y: -4, boxShadow: '0 10px 40px rgba(0,0,0,0.08)', transition: { duration: 0.2 } }}
-                >
-                  <p className="text-xs leading-relaxed text-slate-600 sm:text-sm">"{t.quote}"</p>
-                  <div className="mt-4 flex items-center gap-3">
-                    <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-[#7c3aed] to-[#6366f1] text-xs font-bold text-white sm:h-10 sm:w-10">
-                      {t.initial}
-                    </div>
-                    <div>
-                      <p className="text-sm font-semibold text-slate-900">{t.author}</p>
-                      <StarRating count={t.stars} />
-                    </div>
-                  </div>
-                </motion.article>
-              </StaggerItem>
-            ))}
-          </StaggerContainer>
-          <button className="hidden shrink-0 rounded-full border border-slate-200 bg-white p-2 text-slate-400 shadow-sm transition hover:text-slate-600 md:block">
-            <ChevronRight className="h-5 w-5" />
-          </button>
-        </div>
       </div>
     </section>
   )

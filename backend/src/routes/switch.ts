@@ -49,11 +49,11 @@ router.post(
       const affiliateRef = `quid-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
 
       // Calculate commission
-      const commissionRate = getCommissionRate(toProvider, productType)
+      const commissionRate = await getCommissionRate(toProvider, productType)
       const commission = calculateCommission(Number(saving), commissionRate)
 
       // Generate affiliate link
-      const affiliateLink = generateAffiliateLink(toProvider, productType, affiliateRef)
+      const affiliateLink = await generateAffiliateLink(toProvider, productType, affiliateRef)
 
       // Record switch intent
       const result = await pool.query(

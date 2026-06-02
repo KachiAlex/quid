@@ -37,30 +37,41 @@ export default function Switch() {
   const [switching, setSwitching] = useState(false)
   const [error, setError] = useState('')
 
-  // TODO: Fetch product, comparison, and user data from API
-  // For now, using mock data
   useEffect(() => {
-    setLoading(false)
-    setProduct({
-      record_id: productId || '',
-      product_type: 'car_insurance',
-      provider_name: 'Admiral',
-      annual_cost: 450,
-      frequency: 'annual',
-      confidence_score: 0.9,
-    })
-    setComparison({
-      best_provider: 'Aviva',
-      best_cost: 420,
-      saving: 30,
-    })
-    setUserData({
-      firstName: 'John',
-      lastName: 'Doe',
-      email: 'john@example.com',
-      address: '123 Main Street',
-      postcode: 'SW1A 1AA',
-    })
+    if (!productId) {
+      setError('No product selected')
+      setLoading(false)
+      return
+    }
+    const fetchData = async () => {
+      setLoading(true)
+      setError('')
+      try {
+        const [productRes, comparisonRes, meRes] = await Promise.all([
+          api.get(`/analysis/products/${productId}`),
+          api.get(`/analysis/comparisons/${productId}`),
+          api.get('/auth/me'),
+        ])
+        setProduct(productRes.data.product)
+        setComparison({
+          best_provider: comparisonRes.data.comparison.best_provider,
+          best_cost: parseFloat(comparisonRes.data.comparison.best_cost),
+          saving: parseFloat(comparisonRes.data.comparison.saving),
+        })
+        setUserData({
+          firstName: meRes.data.firstName || '',
+          lastName: meRes.data.lastName || '',
+          email: meRes.data.email || '',
+          address: '',
+          postcode: '',
+        })
+      } catch (err: any) {
+        setError(err.response?.data?.error || 'Failed to load switch data')
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchData()
   }, [productId])
 
   const handleInitiateSwitch = () => {

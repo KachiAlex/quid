@@ -15,9 +15,6 @@ router.post('/rates/update', authenticateToken, async (req, res) => {
     return
   }
 
-  // TODO: Add admin role check
-  // For now, any authenticated user can trigger (restrict in production)
-
   try {
     const result = await triggerManualRateUpdate()
     

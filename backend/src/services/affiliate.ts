@@ -1,7 +1,5 @@
-/**
- * Affiliate Network Integration Service
- * Currently supports Awin network for UK insurance and energy providers
- */
+import { pool } from '../db'
+import { logger } from '../config/logger'
 
 interface AffiliateConfig {
   publisherId: string
@@ -15,48 +13,31 @@ const AWIN_CONFIG: AffiliateConfig = {
   baseUrl: 'https://api.awin.com',
 }
 
-/**
- * Generate an affiliate tracking link for a provider
- * @param providerName - The name of the provider (e.g., "Aviva", "Admiral")
- * @param productType - The product category (e.g., "car_insurance", "energy")
- * @param trackingRef - Unique reference for this switch
- * @returns The affiliate URL with tracking parameters
- */
-export function generateAffiliateLink(
+async function getMerchantId(providerName: string): Promise<string | null> {
+  try {
+    const result = await pool.query(
+      'SELECT awin_merchant_id FROM affiliate_merchants WHERE provider_name = $1 AND active = true',
+      [providerName]
+    )
+    return result.rows[0]?.awin_merchant_id || null
+  } catch (err) {
+    logger.error('Failed to fetch merchant ID', err)
+    return null
+  }
+}
+
+export async function generateAffiliateLink(
   providerName: string,
   productType: string,
   trackingRef: string
-): string {
-  // Map providers to their Awin merchant IDs
-  // TODO: This should be populated from a database or config file
-  const merchantMap: Record<string, string> = {
-    // Car Insurance
-    'Aviva': '12345',
-    'Admiral': '12346',
-    'Direct Line': '12347',
-    'Churchill': '12348',
-    'LV': '12349',
-    // Home Insurance
-    'Hiscox': '12350',
-    // Energy
-    'British Gas': '22345',
-    'Octopus Energy': '22346',
-    'EDF Energy': '22347',
-    'E.ON': '22348',
-    'ScottishPower': '22349',
-  }
-
-  const merchantId = merchantMap[providerName]
+): Promise<string> {
+  const merchantId = await getMerchantId(providerName)
 
   if (!merchantId) {
-    // Fallback: return a generic URL if merchant not found
-    // In production, this should log an error and alert the team
-    console.warn(`No merchant ID found for provider: ${providerName}`)
+    logger.warn(`No merchant ID found for provider: ${providerName}`)
     return `https://www.google.com/search?q=${encodeURIComponent(providerName + ' ' + productType)}`
   }
 
-  // Generate Awin deep link
-  // Format: https://www.awin1.com/cread.php?s=XXXXX&m=XXXXX&u=YYYYY&p=ZZZZZ
   const baseUrl = 'https://www.awin1.com/cread.php'
   const params = new URLSearchParams({
     s: AWIN_CONFIG.publisherId,
@@ -68,12 +49,6 @@ export function generateAffiliateLink(
   return `${baseUrl}?${params.toString()}`
 }
 
-/**
- * Verify a commission report from Awin
- * This would be called by a webhook when Awin reports a conversion
- * @param affiliateRef - The tracking reference from the switch intent
- * @param commissionData - Commission data from Awin
- */
 export async function verifyCommission(
   affiliateRef: string,
   commissionData: {
@@ -82,31 +57,40 @@ export async function verifyCommission(
     merchantId: string
   }
 ): Promise<boolean> {
-  // TODO: Implement Awin API verification
-  // This would call Awin's API to verify the commission report
-  // For now, return true for testing
-  return true
+  if (!AWIN_CONFIG.apiKey) {
+    logger.warn('AWIN_API_KEY not configured — skipping commission verification')
+    return false
+  }
+  try {
+    const response = await fetch(
+      `${AWIN_CONFIG.baseUrl}/publishers/${AWIN_CONFIG.publisherId}/transactions/?accessToken=${AWIN_CONFIG.apiKey}&reference=${affiliateRef}`,
+      { headers: { 'Authorization': `Bearer ${AWIN_CONFIG.apiKey}` } }
+    )
+    if (!response.ok) return false
+    const data = await response.json()
+    return Array.isArray(data) && data.some((tx: any) => tx.advertiserId === commissionData.merchantId)
+  } catch (err) {
+    logger.error('Commission verification failed', err)
+    return false
+  }
 }
 
-/**
- * Get commission rate for a provider and product type
- * @param providerName - The provider name
- * @param productType - The product category
- * @returns Commission rate as a percentage (e.g., 15 for 15%)
- */
-export function getCommissionRate(providerName: string, productType: string): number {
-  // TODO: This should be fetched from a database
-  // Default commission rates for testing
-  const defaultRates: Record<string, number> = {
-    car_insurance: 15,
-    home_insurance: 12,
-    life_insurance: 20,
-    pet_insurance: 18,
-    energy: 8,
-    broadband: 10,
+export async function getCommissionRate(providerName: string, productType: string): Promise<number> {
+  try {
+    const result = await pool.query(
+      `SELECT rate_percent FROM commission_rates
+       WHERE provider_name = $1 AND product_type = $2 AND active = true
+       ORDER BY effective_from DESC
+       LIMIT 1`,
+      [providerName, productType]
+    )
+    if (result.rows.length > 0) {
+      return parseFloat(result.rows[0].rate_percent)
+    }
+  } catch (err) {
+    logger.error('Failed to fetch commission rate', err)
   }
-
-  return defaultRates[productType] || 10
+  return 10
 }
 
 /**

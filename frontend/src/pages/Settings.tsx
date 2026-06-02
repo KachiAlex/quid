@@ -130,7 +130,6 @@ export default function Settings() {
                   type="text"
                   value={mfaToken}
                   onChange={(e) => setMfaToken(e.target.value)}
-                  placeholder="123456"
                   maxLength={6}
                   className="px-3 py-2 border border-slate-300 rounded-lg w-32 text-center tracking-widest"
                 />

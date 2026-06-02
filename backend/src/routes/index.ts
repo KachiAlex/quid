@@ -22,9 +22,5 @@ router.use('/admin', adminRoutes)
 router.use('/dashboard', dashboardRoutes)
 router.use('/gdpr', gdprRoutes)
 router.use('/transactions', transactionRoutes)
-// TODO: mount remaining feature routers
-// router.use('/users', userRoutes)
-// router.use('/products', productRoutes)
-// router.use('/comparison', comparisonRoutes)
 
 export default router

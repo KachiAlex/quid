@@ -8,6 +8,7 @@ import rateLimit from 'express-rate-limit'
 import { randomUUID } from 'crypto'
 
 import { errorHandler } from './middleware/errorHandler'
+import { csrfProtection, getCsrfToken } from './middleware/csrf'
 import routes from './routes'
 import { logger } from './config/logger'
 
@@ -76,6 +77,10 @@ const limiter = rateLimit({
   },
 })
 app.use('/api/', limiter)
+
+app.use('/api', csrfProtection)
+
+app.get('/api/csrf-token', getCsrfToken)
 
 app.use('/api', routes)
 

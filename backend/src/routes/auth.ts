@@ -98,7 +98,7 @@ router.get('/verify-email', async (req, res) => {
 })
 
 // Resend Verification
-router.post('/resend-verification', body('email').isEmail(), async (req, res) => {
+router.post('/resend-verification', body('email').isEmail().normalizeEmail().toLowerCase(), async (req, res) => {
   const errors = validationResult(req)
   if (!errors.isEmpty()) {
     res.status(400).json({ errors: errors.array() })
@@ -137,7 +137,7 @@ router.post('/resend-verification', body('email').isEmail(), async (req, res) =>
 // Login
 router.post(
   '/login',
-  [body('email').isEmail(), body('password').notEmpty()],
+  [body('email').isEmail().normalizeEmail().toLowerCase(), body('password').notEmpty()],
   async (req, res) => {
     const errors = validationResult(req)
     if (!errors.isEmpty()) {
@@ -239,7 +239,7 @@ router.post('/logout', authenticateToken, async (req, res) => {
 })
 
 // Forgot Password
-router.post('/forgot-password', body('email').isEmail(), async (req, res) => {
+router.post('/forgot-password', body('email').isEmail().normalizeEmail().toLowerCase(), async (req, res) => {
   const errors = validationResult(req)
   if (!errors.isEmpty()) {
     res.status(400).json({ errors: errors.array() })

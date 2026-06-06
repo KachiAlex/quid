@@ -7,26 +7,6 @@ import { getIcon } from '../../lib/dashboardIcons'
 
 const filters = ['All', 'Pending', 'Completed', 'Expired']
 
-const iconColors: Record<string, string> = {
-  car_insurance: 'text-emerald-500',
-  broadband: 'text-amber-500',
-  energy: 'text-blue-500',
-  subscription: 'text-rose-500',
-  home_insurance: 'text-violet-500',
-  mobile: 'text-violet-500',
-  generic: 'text-white',
-}
-
-const iconBgs: Record<string, string> = {
-  car_insurance: 'bg-emerald-500/10',
-  broadband: 'bg-amber-500/10',
-  energy: 'bg-blue-500/10',
-  subscription: 'bg-rose-500/10',
-  home_insurance: 'bg-violet-500/10',
-  mobile: 'bg-violet-500/10',
-  generic: 'bg-white/5',
-}
-
 interface SwitchItem {
   event_id: string
   from_provider: string

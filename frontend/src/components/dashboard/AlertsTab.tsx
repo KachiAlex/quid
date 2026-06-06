@@ -7,13 +7,6 @@ import { getIcon } from '../../lib/dashboardIcons'
 
 const filters = ['All', 'Urgent', 'Savings', 'Price Hike', 'Renewal']
 
-const urgencyColors: Record<string, string> = {
-  'Very High': 'bg-rose-500/10 text-rose-400',
-  'High': 'bg-amber-500/10 text-amber-400',
-  'Medium': 'bg-blue-500/10 text-blue-400',
-  'Low': 'bg-emerald-500/10 text-emerald-400',
-}
-
 const typeColors: Record<string, string> = {
   'Urgent': 'bg-rose-500/10 text-rose-400',
   'Savings': 'bg-emerald-500/10 text-emerald-400',

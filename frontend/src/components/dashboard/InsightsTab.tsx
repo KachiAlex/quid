@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import {
-  TrendingUp, ArrowRight, Zap as ZapIcon, Car, Wifi, Layers,
-  Users, PoundSterling, BarChart3, Clock,
+  TrendingUp, PoundSterling, BarChart3, Clock,
 } from 'lucide-react'
 import api from '../../lib/api'
 import { getIcon } from '../../lib/dashboardIcons'

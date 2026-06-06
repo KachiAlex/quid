@@ -1,24 +1,33 @@
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
-  TrendingUp, Car, Wifi, Zap as ZapIcon, Layers,
-  CheckCircle2, ArrowRight, RefreshCw,
+  TrendingUp, ArrowRight, RefreshCw,
   Shield, Eye, Bot, MessageSquare, Users,
-  AlertTriangle, ArrowUpRight,
+  ArrowUpRight,
 } from 'lucide-react'
+import api from '../../lib/api'
+import { getIcon } from '../../lib/dashboardIcons'
 
-const opportunities = [
-  { category: 'Car Insurance', title: 'Overpaying', amount: '£712', period: '/year', urgency: 'Very High', urgencyColor: 'bg-emerald-100 text-emerald-700', icon: Car, iconColor: 'text-emerald-500', iconBg: 'bg-emerald-500/10' },
-  { category: 'Broadband', title: 'Price Increase Detected', amount: '£216', period: '/year', urgency: 'High', urgencyColor: 'bg-amber-100 text-amber-700', icon: Wifi, iconColor: 'text-amber-500', iconBg: 'bg-amber-500/10' },
-  { category: 'Energy', title: 'Better Tariff Available', amount: '£438', period: '/year', urgency: 'High', urgencyColor: 'bg-amber-100 text-amber-700', icon: ZapIcon, iconColor: 'text-violet-500', iconBg: 'bg-violet-500/10' },
-  { category: 'Subscriptions', title: '4 Unused Subscriptions', amount: '£156', period: '/year', urgency: 'Medium', urgencyColor: 'bg-rose-100 text-rose-700', icon: Layers, iconColor: 'text-rose-500', iconBg: 'bg-rose-500/10' },
-]
+interface ProductItem {
+  record_id: string
+  product_type: string
+  provider_name: string
+  annual_cost: number
+  saving: number
+}
 
-const recentActivity = [
-  { icon: CheckCircle2, iconColor: 'text-emerald-500', iconBg: 'bg-emerald-500/10', title: 'Car insurance scan completed', detail: 'Found 8 better quotes for you', time: '2h ago' },
-  { icon: ZapIcon, iconColor: 'text-amber-500', iconBg: 'bg-amber-500/10', title: 'Energy tariff updated', detail: 'Potential saving increased', time: '5h ago' },
-  { icon: AlertTriangle, iconColor: 'text-rose-500', iconBg: 'bg-rose-500/10', title: 'Broadband price increase detected', detail: 'Virgin Media increasing by £18/month', time: '1d ago' },
-  { icon: Layers, iconColor: 'text-blue-500', iconBg: 'bg-blue-500/10', title: '3 unused subscriptions found', detail: 'You could save £47/month', time: '2d ago' },
-]
+interface ActivityItem {
+  activity_id: string
+  activity_type: string
+  title: string
+  detail: string
+  icon_category: string
+  created_at: string
+}
+
+interface ShieldStatus {
+  activeMonitors: number
+}
 
 const chartData = [
   { month: 'Feb', value: 400 },
@@ -50,7 +59,7 @@ function DashboardHeader() {
   )
 }
 
-function TotalSavingsCard() {
+function TotalSavingsCard({ totalSavings }: { totalSavings: number }) {
   const maxValue = Math.max(...chartData.map((d) => d.value))
   const points = chartData.map((d, i) => {
     const x = (i / (chartData.length - 1)) * 100
@@ -66,7 +75,7 @@ function TotalSavingsCard() {
             <p className="text-xs uppercase tracking-widest text-white/50">Total Savings Found</p>
             <span className="flex h-4 w-4 items-center justify-center rounded-full border border-white/20 text-[10px] text-white/40">i</span>
           </div>
-          <p className="text-4xl font-bold text-white sm:text-5xl">£2,847</p>
+          <p className="text-4xl font-bold text-white sm:text-5xl">£{Math.round(totalSavings).toLocaleString()}</p>
           <div className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-400">
             <TrendingUp className="h-3 w-3" /> +23% vs last scan
           </div>
@@ -114,39 +123,49 @@ function TotalSavingsCard() {
   )
 }
 
-function TopOpportunities() {
+function TopOpportunities({ products }: { products: ProductItem[] }) {
+  const urgencyStyle = (saving: number) => {
+    if (saving > 500) return 'bg-rose-500/10 text-rose-400'
+    if (saving > 200) return 'bg-amber-500/10 text-amber-400'
+    return 'bg-emerald-500/10 text-emerald-400'
+  }
   return (
     <div className="mb-6 sm:mb-8">
       <div className="mb-4 flex items-center justify-between sm:mb-5">
         <h2 className="text-base font-semibold text-white sm:text-lg">Top Opportunities</h2>
-        <span className="text-xs font-medium text-[#a78bfa] transition hover:text-[#7c3aed] cursor-pointer">See all (12)</span>
+        <span className="text-xs font-medium text-[#a78bfa] transition hover:text-[#7c3aed] cursor-pointer">See all ({products.length})</span>
       </div>
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 sm:gap-4">
-        {opportunities.map((op) => {
-          const Icon = op.icon
+        {products.slice(0, 4).map((op) => {
+          const Icon = getIcon(op.product_type)
           return (
-            <div key={op.category} className="rounded-2xl border border-white/10 bg-[#12122a]/80 p-4 transition hover:border-white/20">
+            <div key={op.record_id} className="rounded-2xl border border-white/10 bg-[#12122a]/80 p-4 transition hover:border-white/20">
               <div className="mb-3 flex items-center gap-2">
-                <div className={`flex h-8 w-8 items-center justify-center rounded-lg ${op.iconBg}`}>
-                  <Icon className={`h-4 w-4 ${op.iconColor}`} />
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#7c3aed]/20">
+                  <Icon className="h-4 w-4 text-[#a78bfa]" />
                 </div>
-                <span className="text-xs text-white/60">{op.category}</span>
+                <span className="text-xs text-white/60">{op.product_type.replace('_', ' ')}</span>
               </div>
-              <p className="text-sm font-semibold text-white">{op.title}</p>
-              <p className="mt-2 text-2xl font-bold text-white">{op.amount}<span className="text-sm font-normal text-white/50">{op.period}</span></p>
+              <p className="text-sm font-semibold text-white">{op.provider_name}</p>
+              <p className="mt-2 text-2xl font-bold text-white">£{Math.round(op.saving).toLocaleString()}<span className="text-sm font-normal text-white/50">/year</span></p>
               <div className="mt-3 flex items-center justify-between">
-                <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-medium ${op.urgencyColor}`}>{op.urgency}</span>
+                <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-medium ${urgencyStyle(op.saving)}`}>
+                  Save £{Math.round(op.saving)}
+                </span>
                 <ArrowRight className="h-4 w-4 text-white/30" />
               </div>
             </div>
           )
         })}
+        {products.length === 0 && (
+          <p className="col-span-full text-center text-sm text-white/40 py-4">No opportunities found yet. Connect your bank to get started.</p>
+        )}
       </div>
     </div>
   )
 }
 
-function QuidShieldCard() {
+function QuidShieldCard({ monitorCount }: { monitorCount: number }) {
   return (
     <div className="rounded-3xl border border-white/10 bg-gradient-to-br from-[#12122a] to-[#0a0a1a] p-5 shadow-xl sm:p-6">
       <div className="mb-4 flex items-center gap-2">
@@ -156,7 +175,7 @@ function QuidShieldCard() {
       </div>
       <p className="text-sm text-white/60">We're watching your renewals and price changes 24/7</p>
       <div className="my-5 flex items-center gap-4">
-        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#7c3aed]/20 text-xl font-bold text-[#a78bfa]">8</div>
+        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#7c3aed]/20 text-xl font-bold text-[#a78bfa]">{monitorCount}</div>
         <div>
           <p className="text-sm font-medium text-white">Updates monitored</p>
           <p className="text-xs text-white/50">Next alert expected in 3 days</p>
@@ -285,7 +304,15 @@ function AutopilotCard() {
   )
 }
 
-function RecentActivity() {
+function RecentActivity({ activities }: { activities: ActivityItem[] }) {
+  const activityColors: Record<string, { bg: string; color: string }> = {
+    scan: { bg: 'bg-emerald-500/10', color: 'text-emerald-500' },
+    alert: { bg: 'bg-rose-500/10', color: 'text-rose-500' },
+    switch: { bg: 'bg-blue-500/10', color: 'text-blue-500' },
+    shield: { bg: 'bg-amber-500/10', color: 'text-amber-500' },
+    classification: { bg: 'bg-violet-500/10', color: 'text-violet-500' },
+    goal: { bg: 'bg-[#7c3aed]/10', color: 'text-[#a78bfa]' },
+  }
   return (
     <div className="mb-6 sm:mb-8">
       <div className="mb-4 flex items-center justify-between sm:mb-5">
@@ -294,21 +321,25 @@ function RecentActivity() {
       </div>
       <div className="rounded-3xl border border-white/10 bg-gradient-to-br from-[#12122a] to-[#0a0a1a] p-4 shadow-xl sm:p-5">
         <div className="space-y-3">
-          {recentActivity.map((item) => {
-            const Icon = item.icon
+          {activities.slice(0, 5).map((item) => {
+            const style = activityColors[item.activity_type] || activityColors.scan
+            const Icon = getIcon(item.icon_category)
             return (
-              <div key={item.title} className="flex items-start gap-3 rounded-2xl p-3 transition hover:bg-white/5">
-                <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${item.iconBg}`}>
-                  <Icon className={`h-4 w-4 ${item.iconColor}`} />
+              <div key={item.activity_id} className="flex items-start gap-3 rounded-2xl p-3 transition hover:bg-white/5">
+                <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${style.bg}`}>
+                  <Icon className={`h-4 w-4 ${style.color}`} />
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-white">{item.title}</p>
                   <p className="text-xs text-white/50">{item.detail}</p>
                 </div>
-                <span className="shrink-0 text-[10px] text-white/40">{item.time}</span>
+                <span className="shrink-0 text-[10px] text-white/40">{new Date(item.created_at).toLocaleDateString()}</span>
               </div>
             )
           })}
+          {activities.length === 0 && (
+            <p className="text-center text-sm text-white/40 py-4">No activity yet.</p>
+          )}
         </div>
         <div className="mt-3 border-t border-white/5 pt-3">
           <button className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm font-medium text-white/70 transition hover:bg-white/10 hover:text-white">
@@ -389,13 +420,41 @@ function CommunityInsights() {
 }
 
 export default function HomeTab() {
+  const [summary, setSummary] = useState<{ totalSavings: number; products: ProductItem[] } | null>(null)
+  const [activities, setActivities] = useState<ActivityItem[]>([])
+  const [shield, setShield] = useState<ShieldStatus | null>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    Promise.all([
+      api.get('/dashboard/summary'),
+      api.get('/activity'),
+      api.get('/shield/status'),
+    ])
+      .then(([sumRes, actRes, shieldRes]) => {
+        setSummary(sumRes.data)
+        setActivities(actRes.data.activities || [])
+        setShield(shieldRes.data)
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false))
+  }, [])
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-[#7c3aed]" />
+      </div>
+    )
+  }
+
   return (
     <>
       <DashboardHeader />
-      <TotalSavingsCard />
-      <TopOpportunities />
+      <TotalSavingsCard totalSavings={summary?.totalSavings || 0} />
+      <TopOpportunities products={summary?.products || []} />
       <div className="mb-6 grid gap-4 sm:mb-8 lg:grid-cols-2 sm:gap-6">
-        <QuidShieldCard />
+        <QuidShieldCard monitorCount={shield?.activeMonitors || 0} />
         <FinancialHealthScore />
       </div>
       <div className="mb-6 grid gap-4 sm:mb-8 sm:grid-cols-2 lg:grid-cols-3 sm:gap-6">
@@ -403,7 +462,7 @@ export default function HomeTab() {
         <AIFinancialCoach />
         <AutopilotCard />
       </div>
-      <RecentActivity />
+      <RecentActivity activities={activities} />
       <CommunityInsights />
     </>
   )

@@ -1,24 +1,66 @@
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
-  TrendingUp, Shield, Zap as ZapIcon, Car, Wifi, Layers,
+  TrendingUp, Shield,
   ArrowRight, Wallet, PiggyBank, ArrowUpRight, AlertTriangle,
 } from 'lucide-react'
+import api from '../../lib/api'
 
-const quickStats = [
-  { label: 'Total Savings', value: '£2,847', change: '+23%', icon: Wallet, iconBg: 'bg-[#7c3aed]/20', iconColor: 'text-[#a78bfa]' },
-  { label: 'Health Score', value: '78', change: '+12 pts', icon: TrendingUp, iconBg: 'bg-emerald-500/10', iconColor: 'text-emerald-400' },
-  { label: 'Active Monitors', value: '8', change: '2 pending', icon: Shield, iconBg: 'bg-blue-500/10', iconColor: 'text-blue-400' },
-  { label: 'Monthly Saved', value: '£186', change: '+8%', icon: PiggyBank, iconBg: 'bg-amber-500/10', iconColor: 'text-amber-400' },
-]
+interface DashboardSummary {
+  totalSavings: number
+  switchedSavings: number
+  switchCount: number
+  productCounts: Record<string, number>
+}
 
-const upcomingActions = [
-  { title: 'Car insurance renewal in 14 days', subtitle: 'Potential saving: £712/year', icon: Car, iconBg: 'bg-emerald-500/10', iconColor: 'text-emerald-500', urgency: 'High' },
-  { title: 'Broadband price hike detected', subtitle: 'Virgin Media +£18/month', icon: Wifi, iconBg: 'bg-amber-500/10', iconColor: 'text-amber-500', urgency: 'Medium' },
-  { title: 'Energy better tariff available', subtitle: 'Save £438/year by switching', icon: ZapIcon, iconBg: 'bg-violet-500/10', iconColor: 'text-violet-500', urgency: 'High' },
-  { title: '3 unused subscriptions', subtitle: 'You could save £47/month', icon: Layers, iconBg: 'bg-rose-500/10', iconColor: 'text-rose-500', urgency: 'Low' },
-]
+interface AlertAction {
+  alert_id: string
+  title: string
+  detail: string
+  alert_type: string
+  urgency: string
+  icon_category: string
+}
+
+const urgencyStyle = (u: string) => {
+  if (u === 'Very High' || u === 'High') return 'bg-rose-500/10 text-rose-400'
+  if (u === 'Medium') return 'bg-amber-500/10 text-amber-400'
+  return 'bg-emerald-500/10 text-emerald-400'
+}
 
 export default function OverviewTab() {
+  const [summary, setSummary] = useState<DashboardSummary | null>(null)
+  const [actions, setActions] = useState<AlertAction[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    Promise.all([
+      api.get('/dashboard/summary'),
+      api.get('/alerts'),
+    ])
+      .then(([sumRes, alertRes]) => {
+        setSummary(sumRes.data)
+        setActions(alertRes.data.alerts?.slice(0, 4) || [])
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false))
+  }, [])
+
+  const quickStats = summary ? [
+    { label: 'Total Savings', value: `£${Math.round(summary.totalSavings).toLocaleString()}`, change: '+23%', icon: Wallet, iconBg: 'bg-[#7c3aed]/20', iconColor: 'text-[#a78bfa]' },
+    { label: 'Health Score', value: '78', change: '+12 pts', icon: TrendingUp, iconBg: 'bg-emerald-500/10', iconColor: 'text-emerald-400' },
+    { label: 'Active Monitors', value: String(Object.keys(summary.productCounts).length), change: '2 pending', icon: Shield, iconBg: 'bg-blue-500/10', iconColor: 'text-blue-400' },
+    { label: 'Monthly Saved', value: `£${Math.round(summary.switchedSavings / 12).toLocaleString()}`, change: '+8%', icon: PiggyBank, iconBg: 'bg-amber-500/10', iconColor: 'text-amber-400' },
+  ] : []
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-[#7c3aed]" />
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-6 sm:space-y-8">
       <div className="mb-6 flex flex-col gap-4 sm:mb-8 sm:flex-row sm:items-center sm:justify-between">
@@ -57,26 +99,26 @@ export default function OverviewTab() {
           </span>
         </div>
         <div className="space-y-3">
-          {upcomingActions.map((action) => {
-            const Icon = action.icon
+          {actions.map((action) => {
             return (
-              <div key={action.title} className="flex items-center gap-4 rounded-2xl border border-white/10 bg-gradient-to-br from-[#12122a] to-[#0a0a1a] p-4 transition hover:border-white/20 sm:p-5">
-                <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${action.iconBg}`}>
-                  <Icon className={`h-5 w-5 ${action.iconColor}`} />
+              <div key={action.alert_id} className="flex items-center gap-4 rounded-2xl border border-white/10 bg-gradient-to-br from-[#12122a] to-[#0a0a1a] p-4 transition hover:border-white/20 sm:p-5">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#7c3aed]/20">
+                  <AlertTriangle className="h-5 w-5 text-[#a78bfa]" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-white">{action.title}</p>
-                  <p className="text-xs text-white/50">{action.subtitle}</p>
+                  <p className="text-xs text-white/50">{action.detail}</p>
                 </div>
-                <span className={`shrink-0 rounded-full px-2.5 py-0.5 text-[10px] font-medium ${
-                  action.urgency === 'High' ? 'bg-rose-500/10 text-rose-400' :
-                  action.urgency === 'Medium' ? 'bg-amber-500/10 text-amber-400' :
-                  'bg-emerald-500/10 text-emerald-400'
-                }`}>{action.urgency}</span>
+                <span className={`shrink-0 rounded-full px-2.5 py-0.5 text-[10px] font-medium ${urgencyStyle(action.urgency)}`}>
+                  {action.urgency}
+                </span>
                 <ArrowRight className="hidden h-4 w-4 shrink-0 text-white/30 sm:block" />
               </div>
             )
           })}
+          {actions.length === 0 && (
+            <p className="text-center text-sm text-white/40 py-4">No upcoming actions.</p>
+          )}
         </div>
       </div>
 

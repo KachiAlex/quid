@@ -1,35 +1,66 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
-  ArrowDownLeft, ShoppingBag, Coffee, Zap as ZapIcon, Car, Home, Film,
+  ArrowDownLeft, ShoppingBag, Coffee, Zap as ZapIcon, Car, Film,
   Search, Filter, Download,
 } from 'lucide-react'
+import api from '../../lib/api'
 
 const filters = ['All', 'Income', 'Bills', 'Shopping', 'Transport', 'Entertainment']
 
-const transactions = [
-  { id: 1, title: 'Salary', category: 'Income', amount: '3,200.00', type: 'income', date: 'Today', icon: ArrowDownLeft, iconBg: 'bg-emerald-500/10', iconColor: 'text-emerald-500' },
-  { id: 2, title: 'Tesco', category: 'Shopping', amount: '87.43', type: 'expense', date: 'Today', icon: ShoppingBag, iconBg: 'bg-blue-500/10', iconColor: 'text-blue-500' },
-  { id: 3, title: 'Shell Petrol', category: 'Transport', amount: '62.50', type: 'expense', date: 'Yesterday', icon: Car, iconBg: 'bg-amber-500/10', iconColor: 'text-amber-500' },
-  { id: 4, title: 'Netflix', category: 'Entertainment', amount: '12.99', type: 'expense', date: 'Yesterday', icon: Film, iconBg: 'bg-rose-500/10', iconColor: 'text-rose-500' },
-  { id: 5, title: 'British Gas', category: 'Bills', amount: '134.20', type: 'expense', date: 'Jun 3', icon: ZapIcon, iconBg: 'bg-violet-500/10', iconColor: 'text-violet-500' },
-  { id: 6, title: 'Starbucks', category: 'Shopping', amount: '5.60', type: 'expense', date: 'Jun 3', icon: Coffee, iconBg: 'bg-amber-500/10', iconColor: 'text-amber-500' },
-  { id: 7, title: 'Rent', category: 'Bills', amount: '1,200.00', type: 'expense', date: 'Jun 1', icon: Home, iconBg: 'bg-blue-500/10', iconColor: 'text-blue-500' },
-  { id: 8, title: 'Salary', category: 'Income', amount: '3,200.00', type: 'income', date: 'May 31', icon: ArrowDownLeft, iconBg: 'bg-emerald-500/10', iconColor: 'text-emerald-500' },
-]
+const categoryIcons: Record<string, { icon: typeof ArrowDownLeft; bg: string; color: string }> = {
+  Income: { icon: ArrowDownLeft, bg: 'bg-emerald-500/10', color: 'text-emerald-500' },
+  Shopping: { icon: ShoppingBag, bg: 'bg-blue-500/10', color: 'text-blue-500' },
+  Transport: { icon: Car, bg: 'bg-amber-500/10', color: 'text-amber-500' },
+  Entertainment: { icon: Film, bg: 'bg-rose-500/10', color: 'text-rose-500' },
+  Bills: { icon: ZapIcon, bg: 'bg-violet-500/10', color: 'text-violet-500' },
+  default: { icon: Coffee, bg: 'bg-white/5', color: 'text-white' },
+}
+
+interface TransactionItem {
+  transaction_id: string
+  description: string
+  amount: number
+  currency: string
+  transaction_date: string
+  merchant_name: string | null
+  category: string | null
+}
 
 export default function TransactionsTab() {
   const [activeFilter, setActiveFilter] = useState('All')
   const [searchQuery, setSearchQuery] = useState('')
+  const [transactions, setTransactions] = useState<TransactionItem[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    api.get('/transactions')
+      .then((res) => setTransactions(res.data.items || []))
+      .catch(() => {})
+      .finally(() => setLoading(false))
+  }, [])
 
   const filtered = transactions.filter((t) => {
-    if (activeFilter !== 'All' && t.category !== activeFilter) return false
-    if (searchQuery && !t.title.toLowerCase().includes(searchQuery.toLowerCase())) return false
+    const cat = t.category || 'default'
+    if (activeFilter !== 'All' && cat !== activeFilter) return false
+    if (searchQuery && !t.description?.toLowerCase().includes(searchQuery.toLowerCase())) return false
     return true
   })
 
-  const totalExpense = transactions
-    .filter((t) => t.type === 'expense')
-    .reduce((acc, t) => acc + parseFloat(t.amount.replace(',', '')), 0)
+  const totalSpent = transactions
+    .filter((t) => t.amount < 0)
+    .reduce((acc, t) => acc + Math.abs(t.amount), 0)
+
+  const totalIncome = transactions
+    .filter((t) => t.amount > 0)
+    .reduce((acc, t) => acc + t.amount, 0)
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-[#7c3aed]" />
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-6 sm:space-y-8">
@@ -46,16 +77,16 @@ export default function TransactionsTab() {
       <div className="grid gap-3 sm:grid-cols-3 sm:gap-4">
         <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-[#12122a] to-[#0a0a1a] p-4 sm:p-5">
           <p className="text-xs text-white/50">Total Spent (Jun)</p>
-          <p className="mt-1 text-2xl font-bold text-white">£{totalExpense.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+          <p className="mt-1 text-2xl font-bold text-white">£{totalSpent.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
         </div>
         <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-[#12122a] to-[#0a0a1a] p-4 sm:p-5">
           <p className="text-xs text-white/50">Income (Jun)</p>
-          <p className="mt-1 text-2xl font-bold text-emerald-400">£3,200.00</p>
+          <p className="mt-1 text-2xl font-bold text-emerald-400">£{totalIncome.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
         </div>
         <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-[#12122a] to-[#0a0a1a] p-4 sm:p-5">
           <p className="text-xs text-white/50">Biggest Category</p>
-          <p className="mt-1 text-2xl font-bold text-white">Bills</p>
-          <p className="text-xs text-white/50">£1,334.20</p>
+          <p className="mt-1 text-2xl font-bold text-white">-</p>
+          <p className="text-xs text-white/50">Coming soon</p>
         </div>
       </div>
 
@@ -88,18 +119,20 @@ export default function TransactionsTab() {
 
       <div className="space-y-2">
         {filtered.map((t) => {
-          const Icon = t.icon
+          const meta = categoryIcons[t.category || 'default'] || categoryIcons.default
+          const Icon = meta.icon
+          const isIncome = t.amount > 0
           return (
-            <div key={t.id} className="flex items-center gap-4 rounded-2xl border border-white/10 bg-gradient-to-br from-[#12122a] to-[#0a0a1a] p-4 transition hover:border-white/20 sm:p-5">
-              <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${t.iconBg}`}>
-                <Icon className={`h-5 w-5 ${t.iconColor}`} />
+            <div key={t.transaction_id} className="flex items-center gap-4 rounded-2xl border border-white/10 bg-gradient-to-br from-[#12122a] to-[#0a0a1a] p-4 transition hover:border-white/20 sm:p-5">
+              <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${meta.bg}`}>
+                <Icon className={`h-5 w-5 ${meta.color}`} />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-white">{t.title}</p>
-                <p className="text-xs text-white/50">{t.category} • {t.date}</p>
+                <p className="text-sm font-medium text-white">{t.merchant_name || t.description}</p>
+                <p className="text-xs text-white/50">{t.category || 'Uncategorized'} • {new Date(t.transaction_date).toLocaleDateString()}</p>
               </div>
-              <p className={`text-sm font-semibold ${t.type === 'income' ? 'text-emerald-400' : 'text-white'}`}>
-                {t.type === 'income' ? '+' : '-'}£{t.amount}
+              <p className={`text-sm font-semibold ${isIncome ? 'text-emerald-400' : 'text-white'}`}>
+                {isIncome ? '+' : '-'}£{Math.abs(t.amount).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </p>
             </div>
           )

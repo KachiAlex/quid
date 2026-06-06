@@ -16,6 +16,13 @@ async function startServer() {
       throw new Error(`Missing required environment variables: ${missing.join(', ')}`)
     }
 
+    // Validate TrueLayer configuration
+    if (!process.env.TRUELAYER_CLIENT_ID || !process.env.TRUELAYER_CLIENT_SECRET) {
+      logger.warn('TrueLayer CLIENT_ID and/or CLIENT_SECRET not configured. Bank connections will fail.')
+    } else {
+      logger.info('TrueLayer configuration verified')
+    }
+
     // Test database connection
     logger.info('Testing database connection...')
     const dbConnected = await testConnection()

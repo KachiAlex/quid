@@ -12,8 +12,6 @@ type Connection = {
   last_sync_at: string | null
 }
 
-const isProduction = import.meta.env.MODE === 'production'
-const API_BASE = isProduction ? '/api/banking' : (import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/banking` : 'http://localhost:3000/api/banking')
 
 function formatDate(value?: string | null) {
   if (!value) return '—'
@@ -59,15 +57,30 @@ export default function BankConnection() {
     try {
       const res = await api.get('/banking/connections')
       setConnections(res.data.connections)
-    } catch (err) {
-      setError('Unable to fetch your connections.')
+    } catch (err: any) {
+      const msg = err.response?.data?.error || 'Unable to fetch your connections.'
+      setError(msg)
     } finally {
       setLoading(false)
     }
   }
 
-  const handleConnect = () => {
-    window.location.href = `${API_BASE}/connect`
+  const handleConnect = async () => {
+    setLoading(true)
+    setError('')
+    try {
+      const res = await api.get('/banking/connect')
+      if (res.data.url) {
+        window.location.href = res.data.url
+      } else {
+        setError('Unable to start the bank connect flow.')
+      }
+    } catch (err: any) {
+      const code = err.response?.data?.error
+      setError(errorMap[code] || 'Unable to start the bank connect flow.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   const handleSync = async (connectionId: string) => {
@@ -75,8 +88,9 @@ export default function BankConnection() {
     try {
       await api.post(`/banking/connections/${connectionId}/sync`)
       setMessage('Latest transactions are being synced. Refresh in a moment to see updates.')
-    } catch (err) {
-      setError('Unable to sync right now.')
+    } catch (err: any) {
+      const msg = err.response?.data?.error || 'Unable to sync right now.'
+      setError(msg)
     } finally {
       setSyncing((prev) => prev.filter((id) => id !== connectionId))
     }
@@ -88,8 +102,9 @@ export default function BankConnection() {
       await api.delete(`/banking/connections/${connectionId}`)
       setMessage('Bank connection revoked. You can reconnect at any time.')
       fetchConnections()
-    } catch (err) {
-      setError('Unable to revoke this connection.')
+    } catch (err: any) {
+      const msg = err.response?.data?.error || 'Unable to revoke this connection.'
+      setError(msg)
     } finally {
       setRevoking((prev) => prev.filter((id) => id !== connectionId))
     }

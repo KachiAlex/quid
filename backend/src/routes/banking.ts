@@ -19,7 +19,7 @@ import { classifyConnection } from '../services/classification'
 const router = Router()
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173'
 
-// Generate TrueLayer auth URL and redirect
+// Generate TrueLayer auth URL
 router.get('/connect', authenticateToken, async (req, res) => {
   if (!req.user) {
     res.status(401).json({ error: 'Unauthorized' })
@@ -28,10 +28,10 @@ router.get('/connect', authenticateToken, async (req, res) => {
   try {
     const state = Buffer.from(JSON.stringify({ userId: req.user.user_id, nonce: Math.random().toString(36).slice(2) })).toString('base64url')
     const url = getTrueLayerAuthUrl(state)
-    res.redirect(url)
-  } catch (err) {
+    res.json({ url })
+  } catch (err: any) {
     logger.error('Bank connect error', err)
-    res.redirect(`${FRONTEND_URL}/connect-bank?error=connect_failed`)
+    res.status(500).json({ error: 'connect_failed', message: err.message || 'Unable to start the bank connect flow' })
   }
 })
 

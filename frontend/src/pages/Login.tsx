@@ -37,7 +37,7 @@ export default function Login() {
         },
         res.data.accessToken
       )
-      navigate('/dashboard')
+      navigate('/onboarding')
     } catch (err: any) {
       const msg = err.response?.data?.error || 'Login failed'
       if (err.response?.data?.code === 'EMAIL_NOT_VERIFIED') {

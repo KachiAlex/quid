@@ -10,6 +10,7 @@ const VerifyEmail = lazy(() => import('./pages/VerifyEmail'))
 const ForgotPassword = lazy(() => import('./pages/ForgotPassword'))
 const ResetPassword = lazy(() => import('./pages/ResetPassword'))
 const Dashboard = lazy(() => import('./pages/Dashboard'))
+const Onboarding = lazy(() => import('./pages/Onboarding'))
 const BankConnection = lazy(() => import('./pages/BankConnection'))
 const Comparison = lazy(() => import('./pages/Comparison'))
 const Switch = lazy(() => import('./pages/Switch'))
@@ -26,6 +27,7 @@ export default function AppRouter() {
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+        <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
         <Route path="/connect-bank" element={<ProtectedRoute><BankConnection /></ProtectedRoute>} />
         <Route path="/connect-bank/success" element={<ProtectedRoute><BankConnection /></ProtectedRoute>} />
         <Route path="/comparison/:productId" element={<ProtectedRoute><Comparison /></ProtectedRoute>} />

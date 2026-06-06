@@ -4,6 +4,7 @@ import {
   Home, LayoutDashboard, AlertTriangle, Repeat, Shield,
   CreditCard, Target, Lightbulb, Users,
   User, ScanLine, Lock, Crown, ArrowRight,
+  Landmark, X,
 } from 'lucide-react'
 import { useAuthStore } from '../stores/authStore'
 import api from '../lib/api'
@@ -152,16 +153,25 @@ export default function Dashboard() {
   const setAuth = useAuthStore((s) => s.setAuth)
   const [activeTab, setActiveTab] = useState<TabKey>('Home')
 
+  const [hasBankConnection, setHasBankConnection] = useState<boolean | null>(null)
+  const [bannerDismissed, setBannerDismissed] = useState(false)
+
   useEffect(() => {
     const token = searchParams.get('token')
     const google = searchParams.get('google')
     if (google === 'success' && token) {
       api.get('/auth/me').then((res) => {
         setAuth({ id: res.data.userId, email: res.data.email, subscriptionTier: 'free' }, token)
-        navigate('/dashboard', { replace: true })
+        navigate('/onboarding', { replace: true })
       }).catch(() => { navigate('/login?error=google_auth_failed') })
     }
   }, [searchParams, navigate, setAuth])
+
+  useEffect(() => {
+    api.get('/banking/connections')
+      .then((res) => setHasBankConnection(res.data.connections?.length > 0))
+      .catch(() => setHasBankConnection(false))
+  }, [])
 
   const renderTab = () => {
     switch (activeTab) {
@@ -183,6 +193,36 @@ export default function Dashboard() {
       <Sidebar activeTab={activeTab} onTabChange={setActiveTab} />
       <main className="flex-1 overflow-auto">
         <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-8">
+          {hasBankConnection === false && !bannerDismissed && (
+            <div className="mb-6 flex items-start gap-4 rounded-2xl border border-quid-500/30 bg-quid-600/10 p-4 sm:p-5">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-quid-600/20">
+                <Landmark className="h-5 w-5 text-quid-400" />
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-semibold text-white">Connect your bank to see real savings</p>
+                <p className="mt-1 text-xs text-white/60">
+                  You haven't connected a bank account yet. Link your UK bank to discover overpayments and better deals.
+                </p>
+                <div className="mt-3 flex gap-3">
+                  <Link
+                    to="/connect-bank"
+                    className="inline-flex items-center gap-1 rounded-lg bg-quid-600 px-4 py-1.5 text-xs font-medium text-white transition hover:bg-quid-700"
+                  >
+                    Connect bank <ArrowRight className="h-3 w-3" />
+                  </Link>
+                  <button
+                    onClick={() => setBannerDismissed(true)}
+                    className="text-xs text-white/50 hover:text-white/80"
+                  >
+                    Dismiss
+                  </button>
+                </div>
+              </div>
+              <button onClick={() => setBannerDismissed(true)} className="text-white/40 hover:text-white/80">
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+          )}
           {renderTab()}
         </div>
       </main>

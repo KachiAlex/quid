@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useLocation, useSearchParams } from 'react-router-dom'
 import api from '../lib/api'
 
@@ -41,17 +41,7 @@ export default function BankConnection() {
 
   const isBusy = syncing.length > 0 || revoking.length > 0 || loading
 
-  useEffect(() => {
-    fetchConnections()
-  }, [])
-
-  useEffect(() => {
-    if (successBanner) {
-      setMessage('Bank account connected. We are syncing your recent transactions now.')
-    }
-  }, [successBanner])
-
-  const fetchConnections = async () => {
+  const fetchConnections = useCallback(async () => {
     setLoading(true)
     setError('')
     try {
@@ -63,7 +53,27 @@ export default function BankConnection() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
+
+  useEffect(() => {
+    fetchConnections()
+  }, [fetchConnections])
+
+  useEffect(() => {
+    if (successBanner) {
+      setMessage('Bank account connected. We are syncing your recent transactions now.')
+      // Trigger classification from frontend so it reliably completes in serverless environments
+      const connId = searchParams.get('connectionId')
+      if (connId) {
+        api.post(`/banking/connections/${connId}/classify`).then(() => {
+          setMessage('Bank connected and transactions classified. Your savings report is ready.')
+          fetchConnections()
+        }).catch(() => {
+          setMessage('Bank connected. Classification may take a moment — refresh to see updates.')
+        })
+      }
+    }
+  }, [successBanner, searchParams, fetchConnections])
 
   const handleConnect = async () => {
     setLoading(true)

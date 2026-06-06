@@ -113,12 +113,7 @@ router.get('/callback', async (req, res) => {
 
     await purgeOldRawTransactions()
 
-    // Run classification in the background so products are available immediately
-    classifyConnection(userId, connectionId).catch((err) => {
-      logger.warn('Background classification failed after callback', err)
-    })
-
-    res.redirect(`${FRONTEND_URL}/connect-bank/success`)
+    res.redirect(`${FRONTEND_URL}/connect-bank/success?connectionId=${connectionId}`)
   } catch (err: any) {
     logger.error('TrueLayer callback error', err)
     res.redirect(`${FRONTEND_URL}/connect-bank?error=callback_failed`)

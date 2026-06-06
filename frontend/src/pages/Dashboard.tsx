@@ -21,28 +21,35 @@ import CommunityTab from '../components/dashboard/CommunityTab'
 
 type TabKey = 'Home' | 'Overview' | 'Alerts' | 'Switches' | 'Quid Shield' | 'Transactions' | 'Goals' | 'Insights' | 'Community'
 
-const sidebarNav: { label: TabKey; icon: React.ElementType; badge?: number }[] = [
-  { label: 'Home', icon: Home },
-  { label: 'Overview', icon: LayoutDashboard },
-  { label: 'Alerts', icon: AlertTriangle, badge: 5 },
-  { label: 'Switches', icon: Repeat },
-  { label: 'Quid Shield', icon: Shield },
-  { label: 'Transactions', icon: CreditCard },
-  { label: 'Goals', icon: Target },
-  { label: 'Insights', icon: Lightbulb },
-  { label: 'Community', icon: Users },
-]
+function getSidebarNav(badge: number) {
+  const nav: { label: TabKey; icon: React.ElementType; badge?: number }[] = [
+    { label: 'Home', icon: Home },
+    { label: 'Overview', icon: LayoutDashboard },
+    { label: 'Alerts', icon: AlertTriangle, badge: badge > 0 ? badge : undefined },
+    { label: 'Switches', icon: Repeat },
+    { label: 'Quid Shield', icon: Shield },
+    { label: 'Transactions', icon: CreditCard },
+    { label: 'Goals', icon: Target },
+    { label: 'Insights', icon: Lightbulb },
+    { label: 'Community', icon: Users },
+  ]
+  return nav
+}
 
-const bottomNav: { label: string; icon: React.ElementType; badge?: number; highlight?: boolean; href?: string }[] = [
-  { label: 'Home', icon: Home },
-  { label: 'Alerts', icon: AlertTriangle, badge: 5 },
-  { label: 'Scan', icon: ScanLine, highlight: true },
-  { label: 'Switches', icon: Repeat },
-  { label: 'Profile', icon: User, href: '/settings' },
-]
+function getBottomNav(badge: number) {
+  const nav: { label: string; icon: React.ElementType; badge?: number; highlight?: boolean; href?: string }[] = [
+    { label: 'Home', icon: Home },
+    { label: 'Alerts', icon: AlertTriangle, badge: badge > 0 ? badge : undefined },
+    { label: 'Scan', icon: ScanLine, highlight: true },
+    { label: 'Switches', icon: Repeat },
+    { label: 'Profile', icon: User, href: '/settings' },
+  ]
+  return nav
+}
 
 /* --- Sidebar --- */
-function Sidebar({ activeTab, onTabChange }: { activeTab: TabKey; onTabChange: (t: TabKey) => void }) {
+function Sidebar({ activeTab, onTabChange, unreadCount }: { activeTab: TabKey; onTabChange: (t: TabKey) => void; unreadCount: number }) {
+  const sidebarNav = getSidebarNav(unreadCount)
   return (
     <aside className="hidden lg:flex w-64 flex-col border-r border-white/5 bg-[#0d0d1a] px-4 py-6">
       <Link to="/" className="mb-8 px-2 text-2xl font-bold tracking-tight">
@@ -89,7 +96,8 @@ function Sidebar({ activeTab, onTabChange }: { activeTab: TabKey; onTabChange: (
 }
 
 /* --- Bottom Nav (mobile) --- */
-function BottomNav({ activeTab, onTabChange }: { activeTab: TabKey; onTabChange: (t: TabKey) => void }) {
+function BottomNav({ activeTab, onTabChange, unreadCount }: { activeTab: TabKey; onTabChange: (t: TabKey) => void; unreadCount: number }) {
+  const bottomNav = getBottomNav(unreadCount)
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-white/5 bg-[#0d0d1a] px-4 py-2 lg:hidden">
       <div className="mx-auto flex max-w-md items-center justify-around">
@@ -155,6 +163,7 @@ export default function Dashboard() {
 
   const [hasBankConnection, setHasBankConnection] = useState<boolean | null>(null)
   const [bannerDismissed, setBannerDismissed] = useState(false)
+  const [unreadCount, setUnreadCount] = useState(5)
 
   useEffect(() => {
     const token = searchParams.get('token')
@@ -173,6 +182,12 @@ export default function Dashboard() {
       .catch(() => setHasBankConnection(false))
   }, [])
 
+  useEffect(() => {
+    api.get('/alerts/count')
+      .then((res) => setUnreadCount(res.data.unread))
+      .catch(() => setUnreadCount(0))
+  }, [activeTab])
+
   const renderTab = () => {
     switch (activeTab) {
       case 'Home': return <HomeTab />
@@ -190,7 +205,7 @@ export default function Dashboard() {
 
   return (
     <div className="flex min-h-screen bg-[#0a0a14] text-white">
-      <Sidebar activeTab={activeTab} onTabChange={setActiveTab} />
+      <Sidebar activeTab={activeTab} onTabChange={setActiveTab} unreadCount={unreadCount} />
       <main className="flex-1 overflow-auto">
         <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-8">
           {hasBankConnection === false && !bannerDismissed && (
@@ -226,7 +241,7 @@ export default function Dashboard() {
           {renderTab()}
         </div>
       </main>
-      <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
+      <BottomNav activeTab={activeTab} onTabChange={setActiveTab} unreadCount={unreadCount} />
       <div className="h-16 lg:hidden" />
     </div>
   )

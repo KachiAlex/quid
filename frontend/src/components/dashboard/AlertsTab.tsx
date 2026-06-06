@@ -1,31 +1,98 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
-  CheckCircle2, Zap as ZapIcon, Car, Wifi, Layers,
-  Shield, Bell, ArrowRight, Filter, X,
+  CheckCircle2, Bell, ArrowRight, Filter, X,
 } from 'lucide-react'
+import api from '../../lib/api'
+import { getIcon } from '../../lib/dashboardIcons'
 
-const filters = ['All', 'Urgent', 'Savings', 'Price Hikes', 'Renewals']
+const filters = ['All', 'Urgent', 'Savings', 'Price Hike', 'Renewal']
 
-const alerts = [
-  { id: 1, type: 'Urgent', title: 'Car insurance renewal in 14 days', detail: 'Your current provider quoted £1,240. We found 8 better deals starting at £528.', icon: Car, iconBg: 'bg-rose-500/10', iconColor: 'text-rose-500', time: '2h ago', read: false },
-  { id: 2, type: 'Savings', title: 'Broadband price increase detected', detail: 'Virgin Media is increasing your monthly bill by £18 from next month.', icon: Wifi, iconBg: 'bg-amber-500/10', iconColor: 'text-amber-500', time: '5h ago', read: false },
-  { id: 3, type: 'Savings', title: 'Better energy tariff available', detail: 'Octopus Energy Agile tariff could save you £438/year based on your usage.', icon: ZapIcon, iconBg: 'bg-emerald-500/10', iconColor: 'text-emerald-500', time: '1d ago', read: true },
-  { id: 4, type: 'Price Hikes', title: 'Netflix subscription price increased', detail: 'Standard plan went from £10.99 to £12.99. Consider downgrading or switching.', icon: Layers, iconBg: 'bg-blue-500/10', iconColor: 'text-blue-500', time: '2d ago', read: true },
-  { id: 5, type: 'Renewals', title: 'Home insurance renewal due soon', detail: 'Renewal quote: £420. Last year you paid £340. Shop around now.', icon: Shield, iconBg: 'bg-violet-500/10', iconColor: 'text-violet-500', time: '3d ago', read: true },
-  { id: 6, type: 'Savings', title: '3 unused subscriptions found', detail: 'You are paying for Disney+, Audible, and Duolingo but rarely use them.', icon: Layers, iconBg: 'bg-rose-500/10', iconColor: 'text-rose-500', time: '4d ago', read: true },
-]
+const urgencyColors: Record<string, string> = {
+  'Very High': 'bg-rose-500/10 text-rose-400',
+  'High': 'bg-amber-500/10 text-amber-400',
+  'Medium': 'bg-blue-500/10 text-blue-400',
+  'Low': 'bg-emerald-500/10 text-emerald-400',
+}
+
+const typeColors: Record<string, string> = {
+  'Urgent': 'bg-rose-500/10 text-rose-400',
+  'Savings': 'bg-emerald-500/10 text-emerald-400',
+  'Price Hike': 'bg-amber-500/10 text-amber-400',
+  'Renewal': 'bg-blue-500/10 text-blue-400',
+  'System': 'bg-violet-500/10 text-violet-400',
+}
+
+const iconColors: Record<string, string> = {
+  car_insurance: 'text-rose-500',
+  broadband: 'text-amber-500',
+  energy: 'text-emerald-500',
+  subscription: 'text-blue-500',
+  home_insurance: 'text-violet-500',
+  shield: 'text-rose-500',
+  generic: 'text-white',
+}
+
+const iconBgs: Record<string, string> = {
+  car_insurance: 'bg-rose-500/10',
+  broadband: 'bg-amber-500/10',
+  energy: 'bg-emerald-500/10',
+  subscription: 'bg-blue-500/10',
+  home_insurance: 'bg-violet-500/10',
+  shield: 'bg-rose-500/10',
+  generic: 'bg-white/5',
+}
+
+interface AlertItem {
+  alert_id: string
+  alert_type: string
+  title: string
+  detail: string
+  icon_category: string
+  is_read: boolean
+  is_dismissed: boolean
+  urgency: string
+  action_url: string | null
+  action_label: string | null
+  created_at: string
+}
 
 export default function AlertsTab() {
   const [activeFilter, setActiveFilter] = useState('All')
-  const [dismissed, setDismissed] = useState<number[]>([])
+  const [alerts, setAlerts] = useState<AlertItem[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
 
-  const filteredAlerts = alerts.filter((a) => {
-    if (dismissed.includes(a.id)) return false
-    if (activeFilter === 'All') return true
-    return a.type === activeFilter
-  })
+  const fetchAlerts = () => {
+    setLoading(true)
+    api.get('/alerts', { params: { filter: activeFilter } })
+      .then((res) => setAlerts(res.data.alerts || []))
+      .catch(() => setError('Failed to load alerts'))
+      .finally(() => setLoading(false))
+  }
 
-  const unreadCount = alerts.filter((a) => !a.read && !dismissed.includes(a.id)).length
+  useEffect(() => { fetchAlerts() }, [activeFilter])
+
+  const markAllRead = () => {
+    api.patch('/alerts/read-all')
+      .then(() => fetchAlerts())
+      .catch(() => {})
+  }
+
+  const dismissAlert = (id: string) => {
+    api.delete(`/alerts/${id}`)
+      .then(() => fetchAlerts())
+      .catch(() => {})
+  }
+
+  const unreadCount = alerts.filter((a) => !a.is_read && !a.is_dismissed).length
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-[#7c3aed]" />
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-6 sm:space-y-8">
@@ -41,7 +108,10 @@ export default function AlertsTab() {
           </div>
           <p className="mt-1 text-sm text-white/50">Stay on top of price changes and savings opportunities.</p>
         </div>
-        <button className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-white/70 transition hover:bg-white/10 hover:text-white">
+        <button
+          onClick={markAllRead}
+          className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-white/70 transition hover:bg-white/10 hover:text-white"
+        >
           <CheckCircle2 className="h-4 w-4" /> Mark all read
         </button>
       </div>
@@ -61,49 +131,57 @@ export default function AlertsTab() {
         ))}
       </div>
 
+      {error && <p className="text-sm text-rose-400">{error}</p>}
+
       <div className="space-y-3">
-        {filteredAlerts.length === 0 && (
+        {alerts.length === 0 && (
           <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-[#12122a] to-[#0a0a1a] p-8 text-center">
             <Bell className="mx-auto h-8 w-8 text-white/20" />
             <p className="mt-3 text-sm text-white/50">No alerts in this category.</p>
           </div>
         )}
-        {filteredAlerts.map((alert) => {
-          const Icon = alert.icon
+        {alerts.map((alert) => {
+          const Icon = getIcon(alert.icon_category)
           return (
             <div
-              key={alert.id}
+              key={alert.alert_id}
               className={`relative rounded-2xl border p-4 transition hover:border-white/20 sm:p-5 ${
-                alert.read ? 'border-white/10 bg-gradient-to-br from-[#12122a] to-[#0a0a1a]' : 'border-[#7c3aed]/30 bg-gradient-to-br from-[#1a1033] to-[#0d061a]'
+                alert.is_read ? 'border-white/10 bg-gradient-to-br from-[#12122a] to-[#0a0a1a]' : 'border-[#7c3aed]/30 bg-gradient-to-br from-[#1a1033] to-[#0d061a]'
               }`}
             >
-              {!alert.read && <div className="absolute left-0 top-4 h-2 w-2 rounded-full bg-[#7c3aed] sm:top-5" />}
-              <div className={`flex items-start gap-4 ${!alert.read ? 'pl-4' : ''}`}>
-                <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${alert.iconBg}`}>
-                  <Icon className={`h-5 w-5 ${alert.iconColor}`} />
+              {!alert.is_read && <div className="absolute left-0 top-4 h-2 w-2 rounded-full bg-[#7c3aed] sm:top-5" />}
+              <div className={`flex items-start gap-4 ${!alert.is_read ? 'pl-4' : ''}`}>
+                <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${iconBgs[alert.icon_category] || 'bg-white/5'}`}>
+                  <Icon className={`h-5 w-5 ${iconColors[alert.icon_category] || 'text-white'}`} />
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
                     <p className="text-sm font-medium text-white">{alert.title}</p>
-                    <span className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${
-                      alert.type === 'Urgent' ? 'bg-rose-500/10 text-rose-400' :
-                      alert.type === 'Savings' ? 'bg-emerald-500/10 text-emerald-400' :
-                      alert.type === 'Price Hikes' ? 'bg-amber-500/10 text-amber-400' :
-                      'bg-blue-500/10 text-blue-400'
-                    }`}>{alert.type}</span>
+                    <span className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${typeColors[alert.alert_type] || 'bg-blue-500/10 text-blue-400'}`}>
+                      {alert.alert_type}
+                    </span>
                   </div>
                   <p className="mt-1 text-xs text-white/50">{alert.detail}</p>
                   <div className="mt-3 flex items-center gap-3">
-                    <button className="inline-flex items-center gap-1 rounded-lg bg-[#7c3aed] px-3 py-1.5 text-xs font-medium text-white transition hover:bg-[#6d28d9]">
-                      Take action <ArrowRight className="h-3 w-3" />
+                    {alert.action_url && (
+                      <a href={alert.action_url} className="inline-flex items-center gap-1 rounded-lg bg-[#7c3aed] px-3 py-1.5 text-xs font-medium text-white transition hover:bg-[#6d28d9]">
+                        {alert.action_label || 'Take action'} <ArrowRight className="h-3 w-3" />
+                      </a>
+                    )}
+                    <button
+                      onClick={() => dismissAlert(alert.alert_id)}
+                      className="text-xs text-white/40 transition hover:text-white"
+                    >
+                      Dismiss
                     </button>
-                    <button className="text-xs text-white/40 transition hover:text-white">Dismiss</button>
                   </div>
                 </div>
                 <div className="flex flex-col items-end gap-2">
-                  <span className="text-[10px] text-white/40">{alert.time}</span>
+                  <span className="text-[10px] text-white/40">
+                    {new Date(alert.created_at).toLocaleDateString()}
+                  </span>
                   <button
-                    onClick={() => setDismissed((prev) => [...prev, alert.id])}
+                    onClick={() => dismissAlert(alert.alert_id)}
                     className="flex h-6 w-6 items-center justify-center rounded-full text-white/30 transition hover:bg-white/5 hover:text-white"
                   >
                     <X className="h-3 w-3" />

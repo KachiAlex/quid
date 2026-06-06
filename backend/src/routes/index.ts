@@ -7,6 +7,12 @@ import adminRoutes from './admin'
 import dashboardRoutes from './dashboard'
 import gdprRoutes from './gdpr'
 import transactionRoutes from './transactions'
+import alertsRoutes from './alerts'
+import activityRoutes from './activity'
+import shieldRoutes from './shield'
+import goalsRoutes from './goals'
+import insightsRoutes from './insights'
+import communityRoutes from './community'
 
 const router = Router()
 
@@ -22,5 +28,11 @@ router.use('/admin', adminRoutes)
 router.use('/dashboard', dashboardRoutes)
 router.use('/gdpr', gdprRoutes)
 router.use('/transactions', transactionRoutes)
+router.use('/alerts', alertsRoutes)
+router.use('/activity', activityRoutes)
+router.use('/shield', shieldRoutes)
+router.use('/goals', goalsRoutes)
+router.use('/insights', insightsRoutes)
+router.use('/community', communityRoutes)
 
 export default router

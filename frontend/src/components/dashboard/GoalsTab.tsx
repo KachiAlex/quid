@@ -1,20 +1,68 @@
+import { useEffect, useState } from 'react'
 import {
   PiggyBank, Plane, Home, Car, GraduationCap, Plus,
   TrendingUp, CheckCircle2,
 } from 'lucide-react'
+import api from '../../lib/api'
 
-const goals = [
-  { id: 1, name: 'Emergency Fund', target: 5000, current: 3200, icon: PiggyBank, iconBg: 'bg-emerald-500/10', iconColor: 'text-emerald-500', deadline: 'Dec 2026' },
-  { id: 2, name: 'Holiday to Japan', target: 3500, current: 1200, icon: Plane, iconBg: 'bg-blue-500/10', iconColor: 'text-blue-500', deadline: 'Apr 2027' },
-  { id: 3, name: 'House Deposit', target: 40000, current: 8500, icon: Home, iconBg: 'bg-violet-500/10', iconColor: 'text-violet-500', deadline: 'Dec 2028' },
-  { id: 4, name: 'New Car', target: 12000, current: 4500, icon: Car, iconBg: 'bg-amber-500/10', iconColor: 'text-amber-500', deadline: 'Jun 2027' },
-  { id: 5, name: 'Masters Degree', target: 15000, current: 2000, icon: GraduationCap, iconBg: 'bg-rose-500/10', iconColor: 'text-rose-500', deadline: 'Sep 2027' },
-]
+const goalIcons: Record<string, React.ElementType> = {
+  emergency: PiggyBank,
+  holiday: Plane,
+  house: Home,
+  car: Car,
+  education: GraduationCap,
+  generic: PiggyBank,
+}
+
+const iconColors: Record<string, string> = {
+  emergency: 'text-emerald-500',
+  holiday: 'text-blue-500',
+  house: 'text-violet-500',
+  car: 'text-amber-500',
+  education: 'text-rose-500',
+  generic: 'text-white',
+}
+
+const iconBgs: Record<string, string> = {
+  emergency: 'bg-emerald-500/10',
+  holiday: 'bg-blue-500/10',
+  house: 'bg-violet-500/10',
+  car: 'bg-amber-500/10',
+  education: 'bg-rose-500/10',
+  generic: 'bg-white/5',
+}
+
+interface GoalItem {
+  goal_id: string
+  name: string
+  target_amount: number
+  current_amount: number
+  icon_category: string
+  deadline: string
+}
 
 export default function GoalsTab() {
-  const totalTarget = goals.reduce((acc, g) => acc + g.target, 0)
-  const totalCurrent = goals.reduce((acc, g) => acc + g.current, 0)
-  const overallProgress = Math.round((totalCurrent / totalTarget) * 100)
+  const [goals, setGoals] = useState<GoalItem[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    api.get('/goals')
+      .then((res) => setGoals(res.data.goals || []))
+      .catch(() => {})
+      .finally(() => setLoading(false))
+  }, [])
+
+  const totalTarget = goals.reduce((acc, g) => acc + Number(g.target_amount), 0)
+  const totalCurrent = goals.reduce((acc, g) => acc + Number(g.current_amount), 0)
+  const overallProgress = totalTarget > 0 ? Math.round((totalCurrent / totalTarget) * 100) : 0
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-[#7c3aed]" />
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-6 sm:space-y-8">
@@ -51,30 +99,29 @@ export default function GoalsTab() {
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {goals.map((goal) => {
-          const Icon = goal.icon
-          const percent = Math.round((goal.current / goal.target) * 100)
+          const Icon = goalIcons[goal.icon_category] || PiggyBank
+          const target = Number(goal.target_amount)
+          const current = Number(goal.current_amount)
+          const percent = target > 0 ? Math.round((current / target) * 100) : 0
           return (
-            <div key={goal.id} className="rounded-2xl border border-white/10 bg-gradient-to-br from-[#12122a] to-[#0a0a1a] p-5 transition hover:border-white/20">
+            <div key={goal.goal_id} className="rounded-2xl border border-white/10 bg-gradient-to-br from-[#12122a] to-[#0a0a1a] p-5 transition hover:border-white/20">
               <div className="mb-4 flex items-center gap-3">
-                <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${goal.iconBg}`}>
-                  <Icon className={`h-5 w-5 ${goal.iconColor}`} />
+                <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${iconBgs[goal.icon_category] || 'bg-white/5'}`}>
+                  <Icon className={`h-5 w-5 ${iconColors[goal.icon_category] || 'text-white'}`} />
                 </div>
                 <div>
                   <p className="text-sm font-semibold text-white">{goal.name}</p>
-                  <p className="text-xs text-white/50">Due {goal.deadline}</p>
+                  <p className="text-xs text-white/50">Due {goal.deadline ? new Date(goal.deadline).toLocaleDateString() : 'No deadline'}</p>
                 </div>
               </div>
 
               <div className="mb-2 flex items-end justify-between">
-                <p className="text-xl font-bold text-white">£{goal.current.toLocaleString()}</p>
-                <p className="text-xs text-white/50">of £{goal.target.toLocaleString()}</p>
+                <p className="text-xl font-bold text-white">£{current.toLocaleString()}</p>
+                <p className="text-xs text-white/50">of £{target.toLocaleString()}</p>
               </div>
 
               <div className="mb-3 h-2 w-full rounded-full bg-white/5">
-                <div
-                  className="h-2 rounded-full bg-[#7c3aed] transition-all"
-                  style={{ width: `${percent}%` }}
-                />
+                <div className="h-2 rounded-full bg-[#7c3aed] transition-all" style={{ width: `${percent}%` }} />
               </div>
 
               <div className="flex items-center justify-between">

@@ -56,7 +56,7 @@ export async function authenticateToken(
     req.user = result.rows[0]
     next()
   } catch (err) {
-    res.status(403).json({ error: 'Invalid or expired token' })
+    res.status(401).json({ error: 'Invalid or expired token' })
   }
 }
 

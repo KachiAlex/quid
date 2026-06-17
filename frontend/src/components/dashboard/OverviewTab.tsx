@@ -107,23 +107,21 @@ export default function OverviewTab() {
           </span>
         </div>
         <div className="space-y-3">
-          {actions.map((action) => {
-            return (
-              <div key={action.alert_id} className="flex items-center gap-4 rounded-2xl border border-white/10 bg-gradient-to-br from-[#12122a] to-[#0a0a1a] p-4 transition hover:border-white/20 sm:p-5">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#7c3aed]/20">
-                  <AlertTriangle className="h-5 w-5 text-[#a78bfa]" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-white">{action.title}</p>
-                  <p className="text-xs text-white/50">{action.detail}</p>
-                </div>
-                <span className={`shrink-0 rounded-full px-2.5 py-0.5 text-[10px] font-medium ${urgencyStyle(action.urgency)}`}>
-                  {action.urgency}
-                </span>
-                <ArrowRight className="hidden h-4 w-4 shrink-0 text-white/30 sm:block" />
+          {actions.map((action) => (
+            <div key={action.alert_id} className="flex items-center gap-4 rounded-2xl border border-white/10 bg-gradient-to-br from-[#12122a] to-[#0a0a1a] p-4 transition hover:border-white/20 sm:p-5">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#7c3aed]/20">
+                <AlertTriangle className="h-5 w-5 text-[#a78bfa]" />
               </div>
-            )
-          })}
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-white">{action.title}</p>
+                <p className="text-xs text-white/50">{action.detail}</p>
+              </div>
+              <span className={`shrink-0 rounded-full px-2.5 py-0.5 text-[10px] font-medium ${urgencyStyle(action.urgency)}`}>
+                {action.urgency}
+              </span>
+              <ArrowRight className="hidden h-4 w-4 shrink-0 text-white/30 sm:block" />
+            </div>
+          ))}
           {actions.length === 0 && (
             <p className="text-center text-sm text-white/40 py-4">No upcoming actions.</p>
           )}

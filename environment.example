@@ -1,0 +1,29 @@
+# Database Configuration
+DATABASE_URL=postgresql://username:password@host:port/database
+
+# JWT Configuration
+JWT_SECRET=your-super-secret-jwt-key-here
+JWT_REFRESH_SECRET=your-super-secret-refresh-key-here
+
+# Frontend URL
+FRONTEND_URL=https://your-domain.vercel.app
+
+# TrueLayer Configuration (Optional - for bank connections)
+TRUELAYER_CLIENT_ID=your-truelayer-client-id
+TRUELAYER_CLIENT_SECRET=your-truelayer-client-secret
+
+# Rate Limiting
+RATE_LIMIT_WINDOW_MS=900000
+RATE_LIMIT_MAX=100
+
+# AWS Configuration (Optional - for file storage)
+AWS_ACCESS_KEY_ID=your-aws-access-key
+AWS_SECRET_ACCESS_KEY=your-aws-secret-key
+AWS_REGION=us-east-1
+AWS_S3_BUCKET=your-s3-bucket
+
+# Email Configuration (Optional - for notifications)
+AWS_SES_REGION=us-east-1
+
+# Development
+NODE_ENV=production

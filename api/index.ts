@@ -9,6 +9,27 @@ import { csrfProtection, getCsrfToken } from '../backend/src/middleware/csrf'
 import routes from '../backend/src/routes'
 import { testConnection } from '../backend/src/db'
 import { logger } from '../backend/src/config/logger'
+import { handleDemoRequest } from './demo-data'
+
+// Demo mode fallback for missing environment variables
+if (!process.env.DATABASE_URL) {
+  console.log('DATABASE_URL not configured, using demo mode')
+  process.env.DATABASE_URL = 'postgresql://demo:demo@localhost:5432/demo'
+}
+
+if (!process.env.JWT_SECRET) {
+  console.log('JWT_SECRET not configured, using demo secret')
+  process.env.JWT_SECRET = 'demo-jwt-secret-for-development-only'
+}
+
+if (!process.env.JWT_REFRESH_SECRET) {
+  console.log('JWT_REFRESH_SECRET not configured, using demo secret')
+  process.env.JWT_REFRESH_SECRET = 'demo-refresh-secret-for-development-only'
+}
+
+if (!process.env.FRONTEND_URL) {
+  process.env.FRONTEND_URL = 'https://quid.vercel.app'
+}
 
 const app = express()
 
@@ -46,10 +67,34 @@ app.use('/api', csrfProtection)
 
 app.get('/api/csrf-token', getCsrfToken)
 
+// Demo middleware - intercept requests in demo mode
+app.use('/api', (req, res, next) => {
+  if (process.env.DATABASE_URL?.includes('demo')) {
+    const demoResponse = handleDemoRequest(req.path, req.query)
+    if (demoResponse) {
+      console.log(`Demo mode: Serving ${req.path}`)
+      res.json(demoResponse)
+      return
+    }
+  }
+  next()
+})
+
 app.use('/api', routes)
 
 app.get('/api/health', async (_req, res) => {
   try {
+    // For demo mode, always return ok
+    if (process.env.DATABASE_URL?.includes('demo')) {
+      res.json({
+        status: 'demo',
+        timestamp: new Date().toISOString(),
+        database: 'demo-mode',
+        message: 'Running in demo mode - database not required'
+      })
+      return
+    }
+    
     const dbHealthy = await testConnection()
     res.json({
       status: dbHealthy ? 'ok' : 'degraded',

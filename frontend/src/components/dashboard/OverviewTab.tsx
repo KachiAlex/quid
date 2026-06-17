@@ -157,6 +157,7 @@ export default function OverviewTab() {
             <span>Jan</span><span>Feb</span><span>Mar</span><span>Apr</span><span>May</span><span>Jun</span>
           </div>
         </div>
+      </div>
 
       {/* Product Savings Display */}
       <div className="rounded-3xl border border-white/10 bg-gradient-to-br from-[#12122a] to-[#0a0a1a] p-5 shadow-xl sm:p-6">

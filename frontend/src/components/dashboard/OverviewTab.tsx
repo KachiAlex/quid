@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
-  TrendingUp, Shield,
+  Shield,
   ArrowRight, Wallet, PiggyBank, ArrowUpRight, AlertTriangle,
 } from 'lucide-react'
 import api from '../../lib/api'

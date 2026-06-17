@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import {
-  Info, DollarSign, ExternalLink, ChevronDown, ChevronUp,
-  Shield, CheckCircle, AlertCircle, Users, TrendingUp
+  Info, ExternalLink, ChevronDown, ChevronUp,
+  Shield, CheckCircle, TrendingUp
 } from 'lucide-react'
 import api from '../lib/api'
 

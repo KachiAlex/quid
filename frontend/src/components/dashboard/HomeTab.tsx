@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
   TrendingUp, ArrowRight, RefreshCw,
-  Shield, Eye, Bot, MessageSquare, Users,
+  Shield, Eye, Bot, MessageSquare,
   ArrowUpRight,
 } from 'lucide-react'
 import api from '../../lib/api'

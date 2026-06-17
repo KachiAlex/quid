@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import {
-  CheckCircle, Clock, AlertCircle, ArrowRight, Home, User,
-  FileText, CreditCard, Calendar, Info, ExternalLink, Download,
-  Bell, Settings, HelpCircle, TrendingUp, Shield, Zap, X
+  CheckCircle, Clock, AlertCircle, Home,
+  FileText, Info, ExternalLink, Download,
+  Bell, HelpCircle, TrendingUp, X
 } from 'lucide-react'
 import api from '../lib/api'
 import SwitchCancelFlow from '../components/SwitchCancelFlow'

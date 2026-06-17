@@ -129,6 +129,7 @@ export default function OverviewTab() {
           )}
         </div>
       </div>
+      </div>
 
       <div className="rounded-3xl border border-white/10 bg-gradient-to-br from-[#12122a] to-[#0a0a1a] p-5 shadow-xl sm:p-6">
         <div className="mb-4 flex items-center justify-between">

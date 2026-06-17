@@ -2314,8 +2314,8 @@ router.get('/contextual-guidance/analytics', authenticateToken, async (req, res)
 // Create guidance item (admin only)
 router.post('/contextual-guidance', authenticateToken, [
   body('type').isIn(['tip', 'warning', 'success', 'info', 'tutorial', 'recommendation']).withMessage('Invalid type'),
-  body('title').isString().min(1).withMessage('Title is required'),
-  body('description').isString().min(1).withMessage('Description is required'),
+  body('title').isString().isLength({ min: 1 }).withMessage('Title is required'),
+  body('description').isString().isLength({ min: 1 }).withMessage('Description is required'),
   body('context').isObject().withMessage('Context must be an object'),
   body('priority').isIn(['high', 'medium', 'low']).withMessage('Invalid priority'),
   body('actionable').isBoolean().withMessage('Actionable must be boolean'),

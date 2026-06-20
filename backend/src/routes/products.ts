@@ -542,6 +542,40 @@ router.get('/top-ranked/:productType', authenticateToken, async (req, res) => {
   }
 })
 
+// Get all providers grouped by product type (sector)
+router.get('/providers', authenticateToken, async (req, res) => {
+  if (!req.user) return res.status(401).json({ error: 'Unauthorized' })
+
+  try {
+    const result = await pool.query(
+      `SELECT DISTINCT product_type, provider
+       FROM rate_records
+       ORDER BY product_type, provider`
+    )
+
+    const sectors: Record<string, string[]> = {}
+    for (const row of result.rows) {
+      if (!sectors[row.product_type]) {
+        sectors[row.product_type] = []
+      }
+      sectors[row.product_type].push(row.provider)
+    }
+
+    const formatted = Object.entries(sectors).map(([productType, providers]) => ({
+      productType,
+      label: productType
+        .replace(/_/g, ' ')
+        .replace(/\b\w/g, c => c.toUpperCase()),
+      providers,
+    }))
+
+    res.json({ sectors: formatted })
+  } catch (err: any) {
+    logger.error('Failed to fetch providers', err)
+    res.status(500).json({ error: 'Failed to fetch providers' })
+  }
+})
+
 // Get total overpayment summary
 router.get('/overpayment', authenticateToken, async (req, res) => {
   if (!req.user) return res.status(401).json({ error: 'Unauthorized' })

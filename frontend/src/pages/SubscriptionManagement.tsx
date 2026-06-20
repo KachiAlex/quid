@@ -89,6 +89,10 @@ const SubscriptionManagement: React.FC = () => {
   const [showAddModal, setShowAddModal] = useState(false)
   const [addLoading, setAddLoading] = useState(false)
   const [addError, setAddError] = useState<string | null>(null)
+  const [sectors, setSectors] = useState<Array<{ productType: string; label: string; providers: string[] }>>([])
+  const [selectedSector, setSelectedSector] = useState<string>('')
+  const [selectedProvider, setSelectedProvider] = useState<string>('')
+  const [sectorsLoading, setSectorsLoading] = useState(false)
   const [newSubscription, setNewSubscription] = useState({
     providerName: '',
     productType: 'subscription',
@@ -208,6 +212,51 @@ const SubscriptionManagement: React.FC = () => {
 
   const productTypes = Array.from(new Set(products.map(p => p.productType)))
 
+  // Fetch available sectors/providers when modal opens
+  useEffect(() => {
+    if (showAddModal) {
+      fetchSectors()
+    }
+  }, [showAddModal])
+
+  const fetchSectors = async () => {
+    setSectorsLoading(true)
+    try {
+      const res = await api.get('/products/providers')
+      setSectors(res.data.sectors)
+    } catch (err: any) {
+      setAddError('Failed to load providers')
+    } finally {
+      setSectorsLoading(false)
+    }
+  }
+
+  const handleSectorSelect = (productType: string) => {
+    setSelectedSector(productType)
+    setSelectedProvider('')
+    setNewSubscription(prev => ({ ...prev, productType }))
+  }
+
+  const handleProviderSelect = (provider: string) => {
+    setSelectedProvider(provider)
+    setNewSubscription(prev => ({ ...prev, providerName: provider }))
+  }
+
+  const resetAddModal = () => {
+    setShowAddModal(false)
+    setSelectedSector('')
+    setSelectedProvider('')
+    setAddError(null)
+    setNewSubscription({
+      providerName: '',
+      productType: 'subscription',
+      annualCost: '',
+      frequency: 'monthly',
+      contractEndDate: '',
+      tariffName: '',
+    })
+  }
+
   const handleAddSubscription = async () => {
     if (!newSubscription.providerName || !newSubscription.annualCost) {
       setAddError('Provider name and annual cost are required')
@@ -224,15 +273,7 @@ const SubscriptionManagement: React.FC = () => {
         contractEndDate: newSubscription.contractEndDate || undefined,
         tariffName: newSubscription.tariffName || undefined,
       })
-      setShowAddModal(false)
-      setNewSubscription({
-        providerName: '',
-        productType: 'subscription',
-        annualCost: '',
-        frequency: 'monthly',
-        contractEndDate: '',
-        tariffName: '',
-      })
+      resetAddModal()
       fetchData()
     } catch (err: any) {
       setAddError(err.response?.data?.error || 'Failed to add subscription')
@@ -883,115 +924,150 @@ const SubscriptionManagement: React.FC = () => {
       {/* Add Subscription Modal */}
       {showAddModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded-lg shadow-xl max-w-lg w-full mx-4 max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center p-6 border-b">
               <h2 className="text-xl font-semibold text-gray-900">Add Subscription</h2>
               <button
-                onClick={() => setShowAddModal(false)}
+                onClick={resetAddModal}
                 className="text-gray-400 hover:text-gray-600"
               >
                 <X className="h-5 w-5" />
               </button>
             </div>
-            <div className="p-6 space-y-4">
+            <div className="p-6 space-y-5">
               {addError && (
                 <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md text-sm">
                   {addError}
                 </div>
               )}
+
+              {/* Step 1: Select Sector */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Provider Name *
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  1. Choose Sector
                 </label>
-                <input
-                  type="text"
-                  value={newSubscription.providerName}
-                  onChange={(e) => setNewSubscription({ ...newSubscription, providerName: e.target.value })}
-                  placeholder="e.g. Netflix, Spotify"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
+                {sectorsLoading ? (
+                  <div className="flex items-center gap-2 text-sm text-gray-500">
+                    <RefreshCw className="h-4 w-4 animate-spin" />
+                    Loading sectors...
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    {sectors.map((sector) => (
+                      <button
+                        key={sector.productType}
+                        onClick={() => handleSectorSelect(sector.productType)}
+                        className={`px-3 py-2 text-sm rounded-lg border transition text-left ${
+                          selectedSector === sector.productType
+                            ? 'bg-blue-50 border-blue-500 text-blue-700 font-medium'
+                            : 'border-gray-200 text-gray-700 hover:bg-gray-50'
+                        }`}
+                      >
+                        {sector.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Product Type *
-                </label>
-                <select
-                  value={newSubscription.productType}
-                  onChange={(e) => setNewSubscription({ ...newSubscription, productType: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                >
-                  <option value="subscription">Subscription</option>
-                  <option value="energy">Energy</option>
-                  <option value="broadband">Broadband</option>
-                  <option value="car_insurance">Car Insurance</option>
-                  <option value="home_insurance">Home Insurance</option>
-                  <option value="life_insurance">Life Insurance</option>
-                  <option value="pet_insurance">Pet Insurance</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Annual Cost (£) *
-                </label>
-                <input
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  value={newSubscription.annualCost}
-                  onChange={(e) => setNewSubscription({ ...newSubscription, annualCost: e.target.value })}
-                  placeholder="120.00"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Frequency *
-                </label>
-                <select
-                  value={newSubscription.frequency}
-                  onChange={(e) => setNewSubscription({ ...newSubscription, frequency: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                >
-                  <option value="monthly">Monthly</option>
-                  <option value="quarterly">Quarterly</option>
-                  <option value="annual">Annual</option>
-                  <option value="weekly">Weekly</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Contract End Date
-                </label>
-                <input
-                  type="date"
-                  value={newSubscription.contractEndDate}
-                  onChange={(e) => setNewSubscription({ ...newSubscription, contractEndDate: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Tariff / Plan Name
-                </label>
-                <input
-                  type="text"
-                  value={newSubscription.tariffName}
-                  onChange={(e) => setNewSubscription({ ...newSubscription, tariffName: e.target.value })}
-                  placeholder="e.g. Premium, Standard"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
-              </div>
+
+              {/* Step 2: Select Provider */}
+              {selectedSector && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    2. Choose Provider
+                  </label>
+                  <div className="max-h-48 overflow-y-auto border border-gray-200 rounded-lg divide-y divide-gray-100">
+                    {sectors
+                      .find((s) => s.productType === selectedSector)
+                      ?.providers.map((provider) => (
+                        <button
+                          key={provider}
+                          onClick={() => handleProviderSelect(provider)}
+                          className={`w-full text-left px-4 py-2.5 text-sm transition flex items-center justify-between ${
+                            selectedProvider === provider
+                              ? 'bg-blue-50 text-blue-700 font-medium'
+                              : 'text-gray-700 hover:bg-gray-50'
+                          }`}
+                        >
+                          {provider}
+                          {selectedProvider === provider && <CheckCircle className="h-4 w-4 text-blue-600" />}
+                        </button>
+                      ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Step 3: Complete Details */}
+              {selectedProvider && (
+                <div className="space-y-4 pt-2 border-t border-gray-100">
+                  <p className="text-sm font-medium text-gray-700">
+                    3. Complete Details for <span className="text-blue-700">{selectedProvider}</span>
+                  </p>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Annual Cost (£) *
+                    </label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      value={newSubscription.annualCost}
+                      onChange={(e) => setNewSubscription({ ...newSubscription, annualCost: e.target.value })}
+                      placeholder="120.00"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Frequency *
+                    </label>
+                    <select
+                      value={newSubscription.frequency}
+                      onChange={(e) => setNewSubscription({ ...newSubscription, frequency: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    >
+                      <option value="monthly">Monthly</option>
+                      <option value="quarterly">Quarterly</option>
+                      <option value="annual">Annual</option>
+                      <option value="weekly">Weekly</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Contract End Date
+                    </label>
+                    <input
+                      type="date"
+                      value={newSubscription.contractEndDate}
+                      onChange={(e) => setNewSubscription({ ...newSubscription, contractEndDate: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Tariff / Plan Name
+                    </label>
+                    <input
+                      type="text"
+                      value={newSubscription.tariffName}
+                      onChange={(e) => setNewSubscription({ ...newSubscription, tariffName: e.target.value })}
+                      placeholder="e.g. Premium, Standard"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    />
+                  </div>
+                </div>
+              )}
             </div>
             <div className="flex justify-end space-x-3 p-6 border-t bg-gray-50">
               <button
-                onClick={() => setShowAddModal(false)}
+                onClick={resetAddModal}
                 className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-100"
               >
                 Cancel
               </button>
               <button
                 onClick={handleAddSubscription}
-                disabled={addLoading}
+                disabled={addLoading || !selectedProvider || !newSubscription.annualCost}
                 className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 flex items-center"
               >
                 {addLoading ? (

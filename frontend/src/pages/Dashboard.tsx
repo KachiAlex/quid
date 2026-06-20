@@ -4,7 +4,7 @@ import {
   Home, LayoutDashboard, AlertTriangle, Repeat, Shield,
   CreditCard, Target, Lightbulb,
   ScanLine, Lock, Crown, ArrowRight,
-  Landmark, X,
+  Landmark, X, BarChart3,
 } from 'lucide-react'
 import { useAuthStore } from '../stores/authStore'
 import api from '../lib/api'
@@ -21,8 +21,10 @@ import GoalsTab from '../components/dashboard/GoalsTab'
 import InsightsTab from '../components/dashboard/InsightsTab'
 import CommunityTab from '../components/dashboard/CommunityTab'
 import ProductConfirmationTab from '../components/dashboard/ProductConfirmationTab'
+import SubscriptionManagement from '../pages/SubscriptionManagement'
+import FinancialHealth from '../pages/FinancialHealth'
 
-type TabKey = 'Home' | 'Overview' | 'Alerts' | 'Switches' | 'Quid Shield' | 'Transactions' | 'Goals' | 'Insights' | 'Community' | 'Product Confirmation'
+type TabKey = 'Home' | 'Overview' | 'Alerts' | 'Switches' | 'Quid Shield' | 'Transactions' | 'Goals' | 'Insights' | 'Community' | 'Product Confirmation' | 'Subscriptions' | 'Financial Health'
 
 function getSidebarNav(badge: number, pendingConfirmations: number) {
   const nav: { label: TabKey; icon: React.ElementType; badge?: number }[] = [
@@ -36,6 +38,8 @@ function getSidebarNav(badge: number, pendingConfirmations: number) {
     { label: 'Insights', icon: Lightbulb },
     { label: 'Community', icon: UserIcon },
     { label: 'Product Confirmation', icon: AlertTriangle, badge: pendingConfirmations > 0 ? pendingConfirmations : undefined },
+    { label: 'Subscriptions', icon: CreditCard },
+    { label: 'Financial Health', icon: BarChart3 },
   ]
   return nav
 }
@@ -77,23 +81,6 @@ function Sidebar({ activeTab, onTabChange, unreadCount, pendingConfirmations }: 
             )}
           </button>
         ))}
-      </nav>
-      <div className="my-2 border-t border-white/10" />
-      <nav className="mb-2 space-y-1">
-        <Link
-          to="/subscriptions"
-          className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-white/60 transition hover:bg-white/5 hover:text-white"
-        >
-          <CreditCard className="h-4 w-4" />
-          Subscriptions
-        </Link>
-        <Link
-          to="/financial-health"
-          className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-white/60 transition hover:bg-white/5 hover:text-white"
-        >
-          <Shield className="h-4 w-4" />
-          Financial Health
-        </Link>
       </nav>
       <div className="my-2 border-t border-white/10" />
       <div className="mb-4 rounded-2xl border border-white/10 bg-gradient-to-br from-[#1a1033] to-[#0d061a] p-4">
@@ -228,6 +215,8 @@ export default function Dashboard() {
       case 'Insights': return <InsightsTab />
       case 'Community': return <CommunityTab />
       case 'Product Confirmation': return <ProductConfirmationTab />
+      case 'Subscriptions': return <SubscriptionManagement />
+      case 'Financial Health': return <FinancialHealth />
       default: return <HomeTab />
     }
   }

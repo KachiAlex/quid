@@ -120,6 +120,7 @@ export default function Home() {
       <Testimonials />
       <FeaturedLogos />
       <CTA />
+      <Footer />
     </div>
   )
 }
@@ -398,5 +399,25 @@ function CTA() {
         </FadeIn>
       </div>
     </section>
+  )
+}
+
+/* ─── FOOTER ─── */
+function Footer() {
+  return (
+    <footer className="border-t border-white/5 bg-[#0a0a14] py-10">
+      <div className="mx-auto max-w-6xl px-4">
+        <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
+          <div className="flex items-center gap-2 text-lg font-bold">
+            quid<span className="text-[#7c3aed]">.</span>
+          </div>
+          <nav className="flex flex-wrap items-center gap-6 text-xs text-white/50">
+            <Link to="/privacy" className="transition hover:text-white">Privacy Policy</Link>
+            <Link to="/terms" className="transition hover:text-white">Terms of Service</Link>
+          </nav>
+          <p className="text-[10px] text-white/30">&copy; {new Date().getFullYear()} Quid. All rights reserved.</p>
+        </div>
+      </div>
+    </footer>
   )
 }

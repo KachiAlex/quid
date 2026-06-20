@@ -20,6 +20,8 @@ const SubscriptionManagement = lazy(() => import('./pages/SubscriptionManagement
 const ProductExclusion = lazy(() => import('./components/ProductExclusion'))
 const FinancialHealth = lazy(() => import('./pages/FinancialHealth'))
 const Settings = lazy(() => import('./pages/Settings'))
+const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy'))
+const TermsOfService = lazy(() => import('./pages/TermsOfService'))
 
 export default function AppRouter() {
   return (
@@ -43,6 +45,8 @@ export default function AppRouter() {
         <Route path="/exclusions" element={<ProtectedRoute><ProductExclusion /></ProtectedRoute>} />
         <Route path="/financial-health" element={<ProtectedRoute><FinancialHealth /></ProtectedRoute>} />
         <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+        <Route path="/privacy" element={<PrivacyPolicy />} />
+        <Route path="/terms" element={<TermsOfService />} />
       </Routes>
     </Layout>
   )

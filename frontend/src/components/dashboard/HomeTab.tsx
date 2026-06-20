@@ -5,10 +5,10 @@ import {
   Shield, Eye, Bot, MessageSquare,
   ArrowUpRight,
 } from 'lucide-react'
+import { useAuthStore } from '../../stores/authStore'
 import api from '../../lib/api'
 import { getIcon } from '../../lib/dashboardIcons'
 import FinancialHealthScore from '../FinancialHealthScore'
-import UserAvatar from '../UserAvatar'
 import { UserIcon } from '../Icons'
 
 interface ProductItem {
@@ -41,17 +41,18 @@ const chartData = [
 ]
 
 function DashboardHeader() {
+  const user = useAuthStore((s) => s.user)
+  const firstName = user?.firstName || 'there'
   return (
     <div className="mb-6 flex flex-col gap-4 sm:mb-8 sm:flex-row sm:items-center sm:justify-between">
       <div>
-        <h1 className="text-2xl font-bold text-white sm:text-3xl">Good morning, Alex 👋</h1>
+        <h1 className="text-2xl font-bold text-white sm:text-3xl">Good morning, {firstName} 👋</h1>
         <p className="mt-1 text-sm text-white/50">Quid found £2,847 in potential savings for you.</p>
       </div>
       <div className="flex items-center gap-3">
         <div className="hidden items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1.5 text-xs font-medium text-emerald-400 sm:flex">
           <Shield className="h-3.5 w-3.5" /> Quid Shield Active
         </div>
-        <UserAvatar />
         <Link to="/connect-bank" className="hidden items-center gap-2 rounded-xl bg-[#7c3aed] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#6d28d9] sm:inline-flex">
           View my savings <ArrowUpRight className="h-4 w-4" />
         </Link>

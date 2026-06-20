@@ -550,7 +550,7 @@ class AIRecommendationService {
           confidence: 0.75,
           reasoning: `Provider concentration of ${((count / products.length) * 100).toFixed(0)}% increases exposure to provider-specific risks including price changes and service disruptions.`,
           dataPoints: [
-            { type: 'provider_concentration', value: count / products.length, weight: 0.6 },
+            { type: 'provider_concentration', value: Number(count) / products.length, weight: 0.6 },
             { type: 'total_products', value: products.length, weight: 0.2 },
             { type: 'provider_stability', value: 0.8, weight: 0.2 }
           ],

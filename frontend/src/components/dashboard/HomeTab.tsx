@@ -364,7 +364,7 @@ function CommunityInsights() {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#7c3aed]/20">
-                  <Users className="h-4 w-4 text-[#a78bfa]" />
+                  <User className="h-4 w-4 text-[#a78bfa]" />
                 </div>
                 <div>
                   <p className="text-lg font-bold text-white">14,381</p>

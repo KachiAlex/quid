@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useSearchParams, useNavigate, Link } from 'react-router-dom'
 import {
   Home, LayoutDashboard, AlertTriangle, Repeat, Shield,
-  CreditCard, Target, Lightbulb, Users,
+  CreditCard, Target, Lightbulb,
   User, ScanLine, Lock, Crown, ArrowRight,
   Landmark, X,
 } from 'lucide-react'
@@ -33,7 +33,7 @@ function getSidebarNav(badge: number, pendingConfirmations: number) {
     { label: 'Transactions', icon: CreditCard },
     { label: 'Goals', icon: Target },
     { label: 'Insights', icon: Lightbulb },
-    { label: 'Community', icon: Users },
+    { label: 'Community', icon: User },
     { label: 'Product Confirmation', icon: AlertTriangle, badge: pendingConfirmations > 0 ? pendingConfirmations : undefined },
   ]
   return nav

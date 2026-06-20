@@ -6,7 +6,6 @@ import {
   ShieldCheck,
   Sparkles,
   Shield,
-  Users,
   Star,
   Search,
   Zap,
@@ -18,6 +17,7 @@ import {
   DollarSign,
   MessageSquare,
   ToggleLeft,
+  User,
 } from 'lucide-react'
 import UserAvatar from '../components/UserAvatar'
 
@@ -80,7 +80,7 @@ const features = [
   { title: 'Hidden Money Finder', detail: 'We find duplicated or forgotten subscriptions and unused services.', Icon: DollarSign, color: 'text-emerald-600', bg: 'bg-emerald-100' },
   { title: 'AI Financial Coach', detail: 'Personalised advice that actually helps you save more money.', Icon: MessageSquare, color: 'text-blue-600', bg: 'bg-blue-100' },
   { title: 'Autopilot Switching', detail: 'Set your top-ups and let Quid auto-switch when better deals appear.', Icon: ToggleLeft, color: 'text-amber-600', bg: 'bg-amber-100' },
-  { title: 'Community Insights', detail: 'Real-time insights from thousands of people switching every day.', Icon: Users, color: 'text-rose-600', bg: 'bg-rose-100' },
+  { title: 'Community Insights', detail: 'Real-time insights from thousands of people switching every day.', Icon: User, color: 'text-rose-600', bg: 'bg-rose-100' },
 ]
 
 const featuredLogos = ['MSE', 'BBC', 'Forbes', 'TechCrunch', 'This is Money', 'The Guardian']
@@ -238,7 +238,7 @@ function TrustBadges() {
     { title: 'Bank-level security', detail: 'Open Banking Standards', Icon: Lock },
     { title: 'FCA regulated', detail: 'Your data is protected', Icon: ShieldCheck },
     { title: 'No hidden fees', detail: 'We only win when you save', Icon: Sparkles },
-    { title: 'Trusted by 250,000+ users', detail: '250,000+ users', Icon: Users },
+    { title: 'Trusted by 250,000+ users', detail: '250,000+ users', Icon: User },
   ]
   return (
     <StaggerContainer className="mx-auto max-w-6xl px-4 pb-10 sm:pb-16">

@@ -1,7 +1,7 @@
 import {
   Car, Wifi, Zap as ZapIcon, Layers, Shield, Home, Smartphone, CreditCard,
   PiggyBank, Plane, GraduationCap, TrendingUp, Bell, CheckCircle2,
-  AlertTriangle, Bot, Eye, MessageSquare, Users, Star, Clock,
+  AlertTriangle, Bot, Eye, MessageSquare, User, Star, Clock,
   BarChart3, Wallet, type LucideIcon,
 } from 'lucide-react'
 
@@ -24,7 +24,7 @@ export const iconMap: Record<string, LucideIcon> = {
   bot: Bot,
   eye: Eye,
   message: MessageSquare,
-  users: Users,
+  users: User,
   star: Star,
   clock: Clock,
   chart: BarChart3,

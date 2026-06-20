@@ -8,6 +8,7 @@ import {
 } from 'lucide-react'
 import { useAuthStore } from '../stores/authStore'
 import api from '../lib/api'
+import UserAvatar from '../components/UserAvatar'
 
 import HomeTab from '../components/dashboard/HomeTab'
 import OverviewTab from '../components/dashboard/OverviewTab'
@@ -217,6 +218,11 @@ export default function Dashboard() {
       <Sidebar activeTab={activeTab} onTabChange={setActiveTab} unreadCount={unreadCount} pendingConfirmations={pendingConfirmations} />
       <main className="flex-1 overflow-auto">
         <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-8">
+          {/* Top header bar */}
+          <div className="mb-6 flex items-center justify-between">
+            <h1 className="text-xl font-bold text-white">{activeTab}</h1>
+            <UserAvatar />
+          </div>
           {hasBankConnection === false && !bannerDismissed && (
             <div className="mb-6 flex items-start gap-4 rounded-2xl border border-quid-500/30 bg-quid-600/10 p-4 sm:p-5">
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-quid-600/20">

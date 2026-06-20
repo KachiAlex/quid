@@ -8,6 +8,7 @@ import {
 import api from '../../lib/api'
 import { getIcon } from '../../lib/dashboardIcons'
 import FinancialHealthScore from '../FinancialHealthScore'
+import UserAvatar from '../UserAvatar'
 
 interface ProductItem {
   record_id: string
@@ -49,9 +50,7 @@ function DashboardHeader() {
         <div className="hidden items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1.5 text-xs font-medium text-emerald-400 sm:flex">
           <Shield className="h-3.5 w-3.5" /> Quid Shield Active
         </div>
-        <div className="h-9 w-9 overflow-hidden rounded-full bg-gradient-to-br from-[#7c3aed] to-[#6366f1]">
-          <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Alex" alt="Alex" className="h-full w-full object-cover" />
-        </div>
+        <UserAvatar />
         <Link to="/connect-bank" className="hidden items-center gap-2 rounded-xl bg-[#7c3aed] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#6d28d9] sm:inline-flex">
           View my savings <ArrowUpRight className="h-4 w-4" />
         </Link>

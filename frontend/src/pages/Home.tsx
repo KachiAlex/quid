@@ -19,6 +19,7 @@ import {
   MessageSquare,
   ToggleLeft,
 } from 'lucide-react'
+import UserAvatar from '../components/UserAvatar'
 
 /* ─── Animation variants ─── */
 const fadeUp: Variants = {
@@ -94,9 +95,23 @@ function StarRating({ count }: { count: number }) {
   )
 }
 
+function TopNav() {
+  return (
+    <header className="relative z-50 border-b border-white/5 bg-[#04010a]/80 backdrop-blur-md">
+      <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-6">
+        <Link to="/" className="text-xl font-bold tracking-tight">
+          quid<span className="text-[#7c3aed]">.</span>
+        </Link>
+        <UserAvatar />
+      </div>
+    </header>
+  )
+}
+
 export default function Home() {
   return (
     <div className="min-h-screen bg-[#04010a] text-white">
+      <TopNav />
       <Hero />
       <TrustBadges />
       <HowItWorks />

@@ -53,7 +53,7 @@ router.get('/summary', authenticateToken, async (req, res) => {
          LIMIT 1
        ) rr ON true
        WHERE pr.user_id = $1
-         AND pr.excluded = false
+         AND pr.status = 'active'
        ORDER BY saving DESC`,
       [userId]
     )
@@ -90,7 +90,7 @@ router.get('/summary', authenticateToken, async (req, res) => {
     const typeResult = await pool.query(
       `SELECT product_type, COUNT(*) AS count
        FROM product_records
-       WHERE user_id = $1 AND excluded = false
+       WHERE user_id = $1 AND status = 'active'
        GROUP BY product_type`,
       [userId]
     )

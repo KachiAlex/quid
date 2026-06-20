@@ -144,6 +144,169 @@ router.post('/confirm', authenticateToken, async (req, res) => {
   }
 })
 
+// Get all products for the current user
+router.get('/', authenticateToken, async (req, res) => {
+  if (!req.user) return res.status(401).json({ error: 'Unauthorized' })
+
+  try {
+    const result = await pool.query(
+      `SELECT
+        pr.record_id as "recordId",
+        pr.provider_name as "providerName",
+        pr.product_type as "productType",
+        pr.annual_cost as "annualCost",
+        pr.status,
+        pr.contract_end_date as "contractEndDate",
+        pr.tariff_name as "tariffName",
+        pr.last_updated as "lastUpdated",
+        pr.created_at as "createdAt",
+        COALESCE(cr.saving, 0) as "potentialSavings"
+       FROM product_records pr
+       LEFT JOIN comparison_results cr ON pr.record_id = cr.product_record_id
+       WHERE pr.user_id = $1 AND pr.excluded_by_user = false
+       ORDER BY pr.annual_cost DESC`,
+      [req.user.user_id]
+    )
+
+    const products = result.rows.map(row => ({
+      ...row,
+      renewalAlerts: [],
+      priceHikeAlerts: [],
+      rating: null,
+    }))
+
+    res.json(products)
+  } catch (err) {
+    logger.error('Failed to fetch products', err)
+    res.status(500).json({ error: 'Failed to fetch products' })
+  }
+})
+
+// Get product statistics for the current user
+router.get('/statistics', authenticateToken, async (req, res) => {
+  if (!req.user) return res.status(401).json({ error: 'Unauthorized' })
+
+  try {
+    const [productStats, renewalCount, priceHikeCount] = await Promise.all([
+      pool.query(
+        `SELECT
+          COUNT(*) as total,
+          COUNT(*) FILTER (WHERE status = 'active') as active,
+          COALESCE(SUM(annual_cost), 0) as total_cost
+         FROM product_records
+         WHERE user_id = $1 AND excluded_by_user = false`,
+        [req.user.user_id]
+      ),
+      pool.query(
+        `SELECT COUNT(*) as count FROM renewal_alerts WHERE user_id = $1`,
+        [req.user.user_id]
+      ),
+      pool.query(
+        `SELECT COUNT(*) as count FROM price_hike_alerts WHERE user_id = $1`,
+        [req.user.user_id]
+      )
+    ])
+
+    const stats = productStats.rows[0]
+    const total = parseInt(stats.total) || 0
+    const totalCost = parseFloat(stats.total_cost) || 0
+
+    const savingsResult = await pool.query(
+      `SELECT COALESCE(SUM(cr.saving), 0) as total_savings
+       FROM product_records pr
+       LEFT JOIN comparison_results cr ON pr.record_id = cr.product_record_id
+       WHERE pr.user_id = $1 AND pr.excluded_by_user = false`,
+      [req.user.user_id]
+    )
+
+    const breakdownResult = await pool.query(
+      `SELECT product_type, COUNT(*) as count
+       FROM product_records
+       WHERE user_id = $1 AND excluded_by_user = false
+       GROUP BY product_type`,
+      [req.user.user_id]
+    )
+
+    const productTypeBreakdown: Record<string, number> = {}
+    for (const row of breakdownResult.rows) {
+      productTypeBreakdown[row.product_type] = parseInt(row.count)
+    }
+
+    res.json({
+      totalSubscriptions: total,
+      activeSubscriptions: parseInt(stats.active) || 0,
+      totalAnnualCost: totalCost,
+      totalPotentialSavings: parseFloat(savingsResult.rows[0]?.total_savings || 0),
+      averageCost: total > 0 ? totalCost / total : 0,
+      productTypeBreakdown,
+      renewalAlertsCount: parseInt(renewalCount.rows[0].count) || 0,
+      priceHikeAlertsCount: parseInt(priceHikeCount.rows[0].count) || 0,
+    })
+  } catch (err) {
+    logger.error('Failed to fetch product statistics', err)
+    res.status(500).json({ error: 'Failed to fetch statistics' })
+  }
+})
+
+// Manually add a subscription/product
+router.post('/', authenticateToken, async (req, res) => {
+  if (!req.user) return res.status(401).json({ error: 'Unauthorized' })
+
+  const createSchema = z.object({
+    providerName: z.string().min(1),
+    productType: z.enum(['car_insurance', 'home_insurance', 'life_insurance', 'pet_insurance', 'energy', 'broadband', 'subscription']),
+    annualCost: z.number().positive(),
+    frequency: z.enum(['monthly', 'quarterly', 'annual', 'weekly']),
+    contractEndDate: z.string().optional(),
+    tariffName: z.string().optional(),
+  })
+
+  try {
+    const validated = createSchema.parse(req.body)
+
+    const result = await pool.query(
+      `INSERT INTO product_records
+       (user_id, product_type, provider_name, annual_cost, frequency, confidence_score, status, contract_end_date, tariff_name)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+       RETURNING record_id`,
+      [
+        req.user.user_id,
+        validated.productType,
+        validated.providerName,
+        validated.annualCost,
+        validated.frequency,
+        1.0,
+        'active',
+        validated.contractEndDate || null,
+        validated.tariffName || null,
+      ]
+    )
+
+    const recordId = result.rows[0].record_id
+
+    await pool.query(
+      `INSERT INTO comparison_results
+       (user_id, product_record_id, best_provider, best_cost, saving, compared_at, rate_source_timestamp)
+       VALUES ($1, $2, $3, $4, $5, NOW(), NOW())`,
+      [req.user.user_id, recordId, validated.providerName, validated.annualCost, 0]
+    )
+
+    logger.info('Product manually added', { recordId, userId: req.user.user_id })
+
+    res.status(201).json({
+      message: 'Subscription added successfully',
+      recordId,
+    })
+  } catch (err: any) {
+    if (err.name === 'ZodError') {
+      res.status(400).json({ error: 'Invalid input', details: err.errors })
+      return
+    }
+    logger.error('Failed to add product', err)
+    res.status(500).json({ error: 'Failed to add subscription' })
+  }
+})
+
 // Manual reclassification trigger (admin only or for testing)
 router.post('/reclassify', authenticateToken, async (req, res) => {
   if (!req.user) return res.status(401).json({ error: 'Unauthorized' })

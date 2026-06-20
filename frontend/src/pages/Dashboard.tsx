@@ -78,6 +78,24 @@ function Sidebar({ activeTab, onTabChange, unreadCount, pendingConfirmations }: 
           </button>
         ))}
       </nav>
+      <div className="my-2 border-t border-white/10" />
+      <nav className="mb-2 space-y-1">
+        <Link
+          to="/subscriptions"
+          className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-white/60 transition hover:bg-white/5 hover:text-white"
+        >
+          <CreditCard className="h-4 w-4" />
+          Subscriptions
+        </Link>
+        <Link
+          to="/financial-health"
+          className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-white/60 transition hover:bg-white/5 hover:text-white"
+        >
+          <Shield className="h-4 w-4" />
+          Financial Health
+        </Link>
+      </nav>
+      <div className="my-2 border-t border-white/10" />
       <div className="mb-4 rounded-2xl border border-white/10 bg-gradient-to-br from-[#1a1033] to-[#0d061a] p-4">
         <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-[#7c3aed]/20">
           <Crown className="h-5 w-5 text-[#a78bfa]" />

@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import {
-  User, Home, Phone, Mail, Calendar, CreditCard, FileText,
+  Home, Phone, Mail, Calendar, CreditCard, FileText,
   CheckCircle, AlertCircle, Info, ArrowRight, ArrowLeft,
   Building, MapPin, Shield, Zap, Clock
 } from 'lucide-react'
+import { UserIcon } from './Icons'
 import api from '../lib/api'
 
 interface UserFormData {
@@ -278,7 +279,7 @@ const SwitchingForm: React.FC<SwitchingFormProps> = ({
         return (
           <div className="space-y-6">
             <div className="flex items-center space-x-3 mb-6">
-              <User className="h-6 w-6 text-blue-600" />
+              <UserIcon className="h-6 w-6 text-blue-600" />
               <h2 className="text-xl font-semibold text-gray-900">Personal Information</h2>
             </div>
 

@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { LayoutDashboard, User, LogOut, ChevronDown } from 'lucide-react'
+import { LayoutDashboard, LogOut, ChevronDown } from 'lucide-react'
 import { useAuthStore } from '../stores/authStore'
+import { UserIcon } from './Icons'
 
 export default function UserAvatar() {
   const { user, isAuthenticated, clearAuth } = useAuthStore()
@@ -100,7 +101,7 @@ export default function UserAvatar() {
               onClick={() => setOpen(false)}
               className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-white/70 transition hover:bg-white/5 hover:text-white"
             >
-              <User className="h-4 w-4" />
+              <UserIcon className="h-4 w-4" />
               Profile
             </Link>
           </div>

@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import {
-  User, TrendingUp, MessageSquare, ArrowRight,
+  TrendingUp, MessageSquare, ArrowRight,
 } from 'lucide-react'
+import { UserIcon } from '../Icons'
 import api from '../../lib/api'
 
 interface Leader {
@@ -64,7 +65,7 @@ export default function CommunityTab() {
       <div className="grid gap-4 sm:grid-cols-3">
         <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-[#12122a] to-[#0a0a1a] p-5">
           <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-[#7c3aed]/20">
-            <User className="h-5 w-5 text-[#a78bfa]" />
+            <UserIcon className="h-5 w-5 text-[#a78bfa]" />
           </div>
           <p className="text-2xl font-bold text-white">{stats ? stats.activeMembers.toLocaleString() : '-'}</p>
           <p className="mt-1 text-xs text-white/50">Active members</p>

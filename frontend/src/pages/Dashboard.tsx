@@ -3,12 +3,13 @@ import { useSearchParams, useNavigate, Link } from 'react-router-dom'
 import {
   Home, LayoutDashboard, AlertTriangle, Repeat, Shield,
   CreditCard, Target, Lightbulb,
-  User, ScanLine, Lock, Crown, ArrowRight,
+  ScanLine, Lock, Crown, ArrowRight,
   Landmark, X,
 } from 'lucide-react'
 import { useAuthStore } from '../stores/authStore'
 import api from '../lib/api'
 import UserAvatar from '../components/UserAvatar'
+import { UserIcon } from '../components/Icons'
 
 import HomeTab from '../components/dashboard/HomeTab'
 import OverviewTab from '../components/dashboard/OverviewTab'
@@ -33,7 +34,7 @@ function getSidebarNav(badge: number, pendingConfirmations: number) {
     { label: 'Transactions', icon: CreditCard },
     { label: 'Goals', icon: Target },
     { label: 'Insights', icon: Lightbulb },
-    { label: 'Community', icon: User },
+    { label: 'Community', icon: UserIcon },
     { label: 'Product Confirmation', icon: AlertTriangle, badge: pendingConfirmations > 0 ? pendingConfirmations : undefined },
   ]
   return nav
@@ -45,7 +46,7 @@ function getBottomNav(badge: number) {
     { label: 'Alerts', icon: AlertTriangle, badge: badge > 0 ? badge : undefined },
     { label: 'Scan', icon: ScanLine, highlight: true },
     { label: 'Switches', icon: Repeat },
-    { label: 'Profile', icon: User, href: '/settings' },
+    { label: 'Profile', icon: UserIcon, href: '/settings' },
   ]
   return nav
 }

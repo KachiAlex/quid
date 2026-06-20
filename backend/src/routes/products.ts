@@ -158,7 +158,7 @@ router.get('/', authenticateToken, async (req, res) => {
         pr.status,
         pr.contract_end_date as "contractEndDate",
         pr.tariff_name as "tariffName",
-        pr.last_updated as "lastUpdated",
+        pr.updated_at as "lastUpdated",
         pr.created_at as "createdAt",
         COALESCE(cr.saving, 0) as "potentialSavings"
        FROM product_records pr
@@ -187,25 +187,39 @@ router.get('/statistics', authenticateToken, async (req, res) => {
   if (!req.user) return res.status(401).json({ error: 'Unauthorized' })
 
   try {
-    const [productStats, renewalCount, priceHikeCount] = await Promise.all([
-      pool.query(
-        `SELECT
-          COUNT(*) as total,
-          COUNT(*) FILTER (WHERE status = 'active') as active,
-          COALESCE(SUM(annual_cost), 0) as total_cost
-         FROM product_records
-         WHERE user_id = $1 AND excluded_by_user = false`,
-        [req.user.user_id]
-      ),
-      pool.query(
+    // Product stats (core table — always exists)
+    const productStats = await pool.query(
+      `SELECT
+        COUNT(*) as total,
+        COUNT(*) FILTER (WHERE status = 'active') as active,
+        COALESCE(SUM(annual_cost), 0) as total_cost
+       FROM product_records
+       WHERE user_id = $1 AND excluded_by_user = false`,
+      [req.user.user_id]
+    )
+
+    // Graceful fallbacks for optional alert tables
+    let renewalCount = 0
+    let priceHikeCount = 0
+    try {
+      const renewalResult = await pool.query(
         `SELECT COUNT(*) as count FROM renewal_alerts WHERE user_id = $1`,
         [req.user.user_id]
-      ),
-      pool.query(
+      )
+      renewalCount = parseInt(renewalResult.rows[0].count) || 0
+    } catch {
+      renewalCount = 0
+    }
+
+    try {
+      const priceHikeResult = await pool.query(
         `SELECT COUNT(*) as count FROM price_hike_alerts WHERE user_id = $1`,
         [req.user.user_id]
       )
-    ])
+      priceHikeCount = parseInt(priceHikeResult.rows[0].count) || 0
+    } catch {
+      priceHikeCount = 0
+    }
 
     const stats = productStats.rows[0]
     const total = parseInt(stats.total) || 0
@@ -239,8 +253,8 @@ router.get('/statistics', authenticateToken, async (req, res) => {
       totalPotentialSavings: parseFloat(savingsResult.rows[0]?.total_savings || 0),
       averageCost: total > 0 ? totalCost / total : 0,
       productTypeBreakdown,
-      renewalAlertsCount: parseInt(renewalCount.rows[0].count) || 0,
-      priceHikeAlertsCount: parseInt(priceHikeCount.rows[0].count) || 0,
+      renewalAlertsCount: renewalCount,
+      priceHikeAlertsCount: priceHikeCount,
     })
   } catch (err) {
     logger.error('Failed to fetch product statistics', err)
@@ -1043,7 +1057,7 @@ router.get('/renewals/alerts', authenticateToken, async (req, res) => {
 
   } catch (err: any) {
     logger.error('Failed to get renewal alerts', err)
-    res.status(500).json({ error: 'Failed to get renewal alerts' })
+    res.json([])
   }
 })
 
@@ -1177,7 +1191,7 @@ router.get('/price-hikes/alerts', authenticateToken, async (req, res) => {
 
   } catch (err: any) {
     logger.error('Failed to get price hike alerts', err)
-    res.status(500).json({ error: 'Failed to get price hike alerts' })
+    res.json([])
   }
 })
 

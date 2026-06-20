@@ -398,7 +398,7 @@ class RenewalDetection {
 
     } catch (error) {
       logger.error('Failed to get user renewal alerts', error)
-      throw error
+      return []
     }
   }
 

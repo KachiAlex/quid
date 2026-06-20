@@ -575,7 +575,7 @@ This is an automated message from Quid. You can manage your email preferences in
 
     } catch (error) {
       logger.error('Failed to get user price hike alerts', error)
-      throw error
+      return []
     }
   }
 
